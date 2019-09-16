@@ -4,22 +4,22 @@ if ( ! isset( Config::$_strAlien ) ) {
     exit( 500 );
 }
 
-require_once ( Config::$_strAlien . '/SystemFunctions.php' );
-require_once ( Config::$_strAlien . '/Log.php' );
+require_once( Config::$_strAlien . '/SystemFunctions.php' );
+require_once( Config::$_strAlien . '/Log.php' );
 
 if ( ! empty( Config::$_DB_DB ) ) {
-    require_once ( Config::$_strAlien . '/DbFunctions.php' );
+    require_once( Config::$_strAlien . '/DbFunctions.php' );
 }
 
 class 👽 {
     static $_db_link;
 
-    static function init() {       
-        if ( ! empty( Config::$_DB_DB ) ) self::$_db_link = dbConnector();
+    static function init() {
+        if ( ! empty( Config::$_DB_DB ) && empty( Config::$_DB_CONNECT_ON_SQL) ) self::$_db_link = dbConnector();
     }
 
 
-    static function 🖖() { return call_user_func_array("👽::exitNow", func_get_args()); }
+    static function 🖖() { return call_user_func_array( "👽::exitNow", func_get_args() ); }
 
     /**
      * @param string $strLastLogMessage
@@ -32,32 +32,29 @@ class 👽 {
 
         Log::$_strLastLogMessage = $strLastLogMessage;
 
-        if ( $nHttpErrCode && ( $nHttpErrCode < 200  || $nHttpErrCode > 299 ) ) {
-            Log::error( $strLastLogMessage, $strMethod, $strLine, $strFile );
-            header( "HTTP/1.0 $nHttpErrCode $strLastLogMessage" );
-            header( "Content-Type: text/plain" );
-            echo $strOutput ? $strOutput : "$nHttpErrCode $strLastLogMessage";
-        } 
-
-        if ( ! empty( Config::$_DB_DEBUG_TABLE ) ) {
-            Log::toDatabase();
-        } 
-
-        if ( ! empty( Config::$_strDebugLog ) ) {
-            Log::toLogFile();
-        } 
+        if ( $nHttpErrCode ) {
+            if ( $nHttpErrCode >= 200 && $nHttpErrCode < 300 ) {
+                header( "HTTP/1.0 $nHttpErrCode" );
+            } else {
+                Log::error( $strLastLogMessage, $strMethod, $strLine, $strFile );
+                header( "HTTP/1.0 $nHttpErrCode $strLastLogMessage" );
+            }
+        }
 
         if ( $strOutput ) echo $strOutput;
 
+        if ( ! empty( Config::$_DB_DEBUG_TABLE ) ) {
+            Log::toDatabase();
+        }
+
+        if ( ! empty( Config::$_strDebugLog ) ) {
+            Log::toLogFile();
+        }
+
         exit();
     }
-
 }
-
-use function sleep as wait;
 
 👽::init();
 class_alias( '👽', 'Alien' );
-//class_alias( '👽::Log', 'AlienLog' );
-
 

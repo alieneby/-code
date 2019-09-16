@@ -3,12 +3,14 @@ require_once( 'Config.php' );
 require_once( Config::$_strAlien . '/Alien.php' );
 include_once( Config::$_strAlien . "/DbCodeGenerator.php" );
 
-$a = new DbCodeGenerator( "./db/" );
+if ( empty( Config::$_strGeneratedDbClassesPath ) ) {
+    $strErr = 'Please set Config::$_strGeneratedDbClassesPath!';
+    echo "$strErr\n";
+    👽::🖖( $strErr );
+}
 
+if ( empty( Alien::$_db_link ) ) Alien::$_db_link = dbConnector();
 
-👽::🖖( 
-    $strLastLogMessage = 'DbCodeGenerator done', 
-    $nHttpErrCode = 200, 
-    $strOutput = "DbCodeGenerator done\n",
-    __METHOD__, __LINE__, __FILE__
-);
+$a = new DbCodeGenerator( Config::$_strGeneratedDbClassesPath );
+
+👽::🖖( 'Done' );

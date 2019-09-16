@@ -1,7 +1,7 @@
 <?php
 
-require_once ( Config::$_strAlien . '/Alien.php' );
-require_once ( Config::$_strAlien . '/DbGenUtils.php' );
+require_once( Config::$_strAlien . '/Alien.php' );
+require_once( Config::$_strAlien . '/DbGenUtils.php' );
 
 class CodeGenColumn {
 
@@ -83,8 +83,7 @@ class CodeGenTable {
  * this class generates automatically a class by given sql table
  * it uses commandline access
  */
-class DbCodeGenerator
-{
+class DbCodeGenerator {
     var $_strPath = ''; // with slash at the end
     var $_arrTables = array();
 
@@ -113,36 +112,36 @@ class DbCodeGenerator
      * constructor
      * stores all required mysql access data
      *
-     * @param string $strPath   dbgen/genfiles path absolute
+     * @param string $strPath dbgen/genfiles path absolute
      */
-    function DbCodeGenerator( $strPath="./genfiles/" )  {
-        
-        if ( ! AlienDB::$_linkId ) { 
-            Log::error('No database connection', __METHOD__, __LINE__, __FILE__ );
+    function DbCodeGenerator( $strPath = "./genfiles/" ) {
+
+        if ( ! AlienDB::$_linkId ) {
+            Log::error( 'No database connection', __METHOD__, __LINE__, __FILE__ );
             return false;
         }
 
         if ( strlen( $strPath ) > 1 && substr( $strPath, -1 ) != "/" ) $strPath .= "/";
-        
+
         $this->_strPath = $strPath;
         $this->_strTablePrefix = Config::$_DB_PREFIX;
         $this->_debug = true;
 
-        Log::always('Database connection successful.', __METHOD__, __LINE__, __FILE__ );
-        Log::always('getting database structure', __METHOD__, __LINE__, __FILE__ );
-        
+        Log::always( 'Database connection successful.', __METHOD__, __LINE__, __FILE__ );
+        Log::always( 'getting database structure', __METHOD__, __LINE__, __FILE__ );
+
         if ( ! $this->getDBStructure( Config::$_DB_DB ) ) {
-            Log::error('Generation stopped', __METHOD__, __LINE__, __FILE__ );
+            Log::error( 'Generation stopped', __METHOD__, __LINE__, __FILE__ );
         }
 
         if ( ! $this->delOldFiles() ) {
-            Log::error('Generation stopped', __METHOD__, __LINE__, __FILE__ );
+            Log::error( 'Generation stopped', __METHOD__, __LINE__, __FILE__ );
         }
-        
-        Log::always('source code creation starts...', __METHOD__, __LINE__, __FILE__ );
-        
+
+        Log::always( 'source code creation starts...', __METHOD__, __LINE__, __FILE__ );
+
         $this->createCode();
-        Log::always('source code creation finished', __METHOD__, __LINE__, __FILE__ );
+        Log::always( 'source code creation finished', __METHOD__, __LINE__, __FILE__ );
     }
 
     /**
@@ -155,9 +154,9 @@ class DbCodeGenerator
         foreach ( $this->_arrTables as $tb ) {
             $strFilename = $this->_strPath . $tb->_strNamePhp . ".php";
             if ( is_file( $strFilename ) ) {
-                Log::always( "unlink $strFilename", __METHOD__, __LINE__, __FILE__ );                
+                Log::always( "unlink $strFilename", __METHOD__, __LINE__, __FILE__ );
                 if ( unlink( $strFilename ) ) {
-                    Log::always( "unlink $strFilename", __METHOD__, __LINE__, __FILE__ );                
+                    Log::always( "unlink $strFilename", __METHOD__, __LINE__, __FILE__ );
                 } else {
                     $fReturn = false;
                     Log::error( "Can not unlink $strFilename", __METHOD__, __LINE__, __FILE__ );
@@ -176,14 +175,14 @@ class DbCodeGenerator
 
         $result = mysqli_query( AlienDB::$_linkId, "show tables" );
         if ( ! $result ) {
-            return Log::error( 'Error getting table names: '.mysqli_error(), __METHOD__, __LINE__, __FILE__ );            
+            return Log::error( 'Error getting table names: ' . mysqli_error(), __METHOD__, __LINE__, __FILE__ );
         }
 
         while ( $row = mysqli_fetch_row( $result ) ) {
             $tb = new CodeGenTable();
             $tb->_strNameDB = $row[0];
             $tb->_strNamePhp = ucfirst( $this->rename( $row[0], $this->_strTablePrefix ) );
-            if ( is_numeric( substr( $tb->_strNamePhp, 0, 1) ) ) {
+            if ( is_numeric( substr( $tb->_strNamePhp, 0, 1 ) ) ) {
                 $tb->_strNamePhp = $this->_strTablePrefix . $tb->_strNamePhp;
             }
             $this->_arrTables[] = $tb;
@@ -211,7 +210,7 @@ class DbCodeGenerator
             } elseif ( strtoupper( $codeGenColumn->_strDefault ) == 'CURRENT_TIMESTAMP' ) {
                 return array( "'CURRENT_TIMESTAMP'", 'NOW()' );
             } else {
-                return array( "'" . $codeGenColumn->_strDefault . "'", "'" .  $codeGenColumn->_strDefault ."'" );
+                return array( "'" . $codeGenColumn->_strDefault . "'", "'" . $codeGenColumn->_strDefault . "'" );
             }
         }
 
@@ -220,32 +219,32 @@ class DbCodeGenerator
             return array( "null", "NULL" );
         }
 
-        if ( strpos( $t, "enum") !== false ) {
+        if ( strpos( $t, "enum" ) !== false ) {
             $str = Utils::strStringBetween( $codeGenColumn->_strType, "'", "'" );
             return array( "'$str'", "'$str'" );
 
         }
-        if ( strpos($t,"int")!==false || $t=="decimal" || $t=="float" || $t=="real" || $t=="double") {
+        if ( strpos( $t, "int" ) !== false || $t == "decimal" || $t == "float" || $t == "real" || $t == "double" ) {
             //echo $codeGenColumn->_strNameDB . " 0<br>\n";
             return array( 0, 0 );
         }
-        if (strpos($t,"text")!==false || strpos($t,"char")!==false || strpos($t,"blob")!==false || strpos($t,"binary")!==false ) {
+        if ( strpos( $t, "text" ) !== false || strpos( $t, "char" ) !== false || strpos( $t, "blob" ) !== false || strpos( $t, "binary" ) !== false ) {
             return array( "''", "''" );
         }
 
-        if ($t=="datetime" || $t=="timestamp" ) {
-            return array( "'0000-00-00 00:00:00'", "'0000-00-00 00:00:00'");
+        if ( $t == "datetime" || $t == "timestamp" ) {
+            return array( "'0000-00-00 00:00:00'", "'0000-00-00 00:00:00'" );
         }
-        if ($t=="date") {
-            return array("'0000-00-00'", "'0000-00-00'");
+        if ( $t == "date" ) {
+            return array( "'0000-00-00'", "'0000-00-00'" );
         }
-        if ($t=="time") {
-            return array("'00:00:00'", "'00:00:00'");
+        if ( $t == "time" ) {
+            return array( "'00:00:00'", "'00:00:00'" );
         }
-        if ($t=="year") {
-            return array("'0000'", "'0000'");
+        if ( $t == "year" ) {
+            return array( "'0000'", "'0000'" );
         }
-        return array("''", "''");
+        return array( "''", "''" );
     }
 
     /**
@@ -253,16 +252,16 @@ class DbCodeGenerator
      *
      * @access private
      */
-    function getTableStructure(CodeGenTable $tb) {        
-        $result = mysqli_query(AlienDB::$_linkId, "EXPLAIN `".$tb->_strNameDB."`;");
-        if (!$result) return $this->debug("EXPLAIN ERROR ".$tb->_strNameDB);
-        $this->debug(mysqli_num_rows($result).' data fields have been found.');
+    function getTableStructure( CodeGenTable $tb ) {
+        $result = mysqli_query( AlienDB::$_linkId, "EXPLAIN `" . $tb->_strNameDB . "`;" );
+        if ( ! $result ) return $this->debug( "EXPLAIN ERROR " . $tb->_strNameDB );
+        $this->debug( mysqli_num_rows( $result ) . ' data fields have been found.' );
         echo "<pre>";
-        while($row = mysqli_fetch_assoc($result)) {
-            print_r($row);
+        while ( $row = mysqli_fetch_assoc( $result ) ) {
+            print_r( $row );
             $codeGenColumn = new CodeGenColumn();
-            $codeGenColumn->_strNameDB =  $row['Field'];
-            $codeGenColumn->_strNamePhp =  $this->rename($row['Field'], $this->_strColumnPrefix);
+            $codeGenColumn->_strNameDB = $row['Field'];
+            $codeGenColumn->_strNamePhp = $this->rename( $row['Field'], $this->_strColumnPrefix );
             $codeGenColumn->_strKey = $row['Key'];
             $codeGenColumn->_strType = $row['Type'];
             $codeGenColumn->_strNull = $row['Null'];
@@ -272,9 +271,10 @@ class DbCodeGenerator
             $codeGenColumn->_strDefaultSql = 'set later';;
             $codeGenColumn->_nDoEscape = 1;
             $codeGenColumn->_nIsNumeric = 0;
+            $codeGenColumn->_arrAllowedValues = array();
 
             $t = self::getType( $codeGenColumn->_strType );
-            if ( strpos($t,"int")!==false || $t=="decimal" || $t=="float" || $t=="real" || $t=="double") {
+            if ( strpos( $t, "int" ) !== false || $t == "decimal" || $t == "float" || $t == "real" || $t == "double" ) {
                 $codeGenColumn->_nDoEscape = 0;
                 $codeGenColumn->_nIsNumeric = 0;
             }
@@ -283,36 +283,36 @@ class DbCodeGenerator
                 $tb->_strAutoIncrCol = $row['Field'];
             }
 
-            if (strpos($row['Type'],"enum")!==false) {
-                $values = substr($row['Type'],5, strlen($row['Type'])-6);
+            if ( strpos( $row['Type'], "enum" ) !== false ) {
+                $values = substr( $row['Type'], 5, strlen( $row['Type'] ) - 6 );
                 // echo "values=$values";
                 $arr = array();
-                foreach (explode ( ",", $values) as $v) {
-                    if (strlen($v)>1) $arr[] = substr($v,1,strlen($v)-2);
+                foreach ( explode( ",", $values ) as $v ) {
+                    if ( strlen( $v ) > 1 ) $arr[] = substr( $v, 1, strlen( $v ) - 2 );
                 }
                 $codeGenColumn->_arrAllowedValues = $arr;
             }
 
 
             list( $codeGenColumn->_strDefaultPhp, $codeGenColumn->_strDefaultSql )
-                    = $this->getGeneratedDefaultValue( $codeGenColumn );
+                = $this->getGeneratedDefaultValue( $codeGenColumn );
 
-            print_r($codeGenColumn);
+            print_r( $codeGenColumn );
             $tb->_arrColumns[] = $codeGenColumn;
         }
         echo "</pre>";
-        mysqli_free_result($result);
+        mysqli_free_result( $result );
 
-        $result = mysqli_query(AlienDB::$_linkId, "select COLUMN_NAME, COLUMN_COMMENT from information_schema.COLUMNS where  TABLE_NAME='".$tb->_strNameDB."';");
-        if ($result) {
-            while ($row=mysqli_fetch_assoc($result)) {
-                foreach ($tb->_arrColumns as $key => $codeGenColumn) {
-                    if ($codeGenColumn->_strNameDB == $row['COLUMN_NAME']) {
+        $result = mysqli_query( AlienDB::$_linkId, "select COLUMN_NAME, COLUMN_COMMENT from information_schema.COLUMNS where  TABLE_NAME='" . $tb->_strNameDB . "';" );
+        if ( $result ) {
+            while ( $row = mysqli_fetch_assoc( $result ) ) {
+                foreach ( $tb->_arrColumns as $key => $codeGenColumn ) {
+                    if ( $codeGenColumn->_strNameDB == $row['COLUMN_NAME'] ) {
                         $codeGenColumn->_strComment = $row['COLUMN_COMMENT'];
                     }
                 }
             }
-            mysqli_free_result($result);
+            mysqli_free_result( $result );
         }
 
     }
@@ -331,26 +331,26 @@ class DbCodeGenerator
     /**
      * simply code creation for all fields with their corresponding apidoc
      */
-    function createFileContent(CodeGenTable $tb){
+    function createFileContent( CodeGenTable $tb ) {
 
         $this->code = array();
         //	1st) header
         $this->code[] = '<?php';
         //$this->code[] = "include_once 'DbGen.php';";
         $this->code[] = '/**';
-        $this->code[] = ' * Created on '.date('d.m.Y');
+        $this->code[] = ' * Created on ' . date( 'd.m.Y' );
         $this->code[] = ' * $Id$';
         $this->code[] = ' */';
         //	2nd) class header
         //$this->code[] = 'class '.$tb->_strNamePhp ." extends DbGen {";
-        $this->code[] = 'class '.$tb->_strNamePhp ." {";
+        $this->code[] = 'class ' . $tb->_strNamePhp . " {";
 
         $this->code[] = '    /**';
         $this->code[] = '    * Database table';
         $this->code[] = '    * @access public';
         $this->code[] = '    */';
-        $this->code[] = '    public static $TABLENAME ="'.$tb->_strNameDB.'";';
-        $this->code[] = "    public static \$DBAUTOINCR = '".$tb->_strAutoIncrCol."';";
+        $this->code[] = '    public static $TABLENAME ="' . $tb->_strNameDB . '";';
+        $this->code[] = "    public static \$DBAUTOINCR = '" . $tb->_strAutoIncrCol . "';";
         $this->code[] = '';
         $this->code[] = '    var $_arrayObjects;';
 
@@ -360,11 +360,11 @@ class DbCodeGenerator
         $this->code[] = '    * @access public';
         $this->code[] = '    */';
         $this->code[] = '';
-        $this->code[] = '    /* @var $_loadDbObj '.$tb->_strNamePhp.' */';
+        $this->code[] = '    /* @var $_loadDbObj ' . $tb->_strNamePhp . ' */';
         $this->code[] = '    var $_loadDbObj;';
         //	3rd) private vars
         $codeGenColumn = new CodeGenColumn();
-        foreach ($tb->_arrColumns as $codeGenColumn ) {
+        foreach ( $tb->_arrColumns as $codeGenColumn ) {
             /*
             $strDefault = "null";
             $t = self::getType( $codeGenColumn->_strType );
@@ -377,24 +377,24 @@ class DbCodeGenerator
             }
             */
             $this->code[] = '    /**';
-            if ($codeGenColumn->_strComment)  $this->code[] = '    * '.$codeGenColumn->_strComment;
-            if ($codeGenColumn->_nIsNumeric) {
+            if ( $codeGenColumn->_strComment ) $this->code[] = '    * ' . $codeGenColumn->_strComment;
+            if ( $codeGenColumn->_nIsNumeric ) {
                 $this->code[] = "    * @var numeric \t" . $codeGenColumn->_strType . " \t" . $codeGenColumn->_strNameDB;
             } else {
                 $this->code[] = "    * @var string  \t" . $codeGenColumn->_strType . " \t" . $codeGenColumn->_strNameDB;
             }
             $this->code[] = '    * @access public';
             $this->code[] = '    */';
-            $this->code[] = '    public $_'.$codeGenColumn->_strNamePhp.';';
+            $this->code[] = '    public $_' . $codeGenColumn->_strNamePhp . ';';
             $this->code[] = '    static $_' . strtoupper( $codeGenColumn->_strNamePhp ) . '_DEFAULT=' . $codeGenColumn->_strDefaultPhp . ';';
-            if (count($codeGenColumn->_arrAllowedValues)) {
+            if ( count( $codeGenColumn->_arrAllowedValues ) ) {
                 $s = "";
-                foreach ($codeGenColumn->_arrAllowedValues as $value) {
-                    if ($s) $s .=", ";
+                foreach ( $codeGenColumn->_arrAllowedValues as $value ) {
+                    if ( $s ) $s .= ", ";
                     $s .= "\"$value\"";
-                    $this->code[] = '    static $_'.strtoupper($codeGenColumn->_strNamePhp."_".DbGenUtils::onlyAlphaNumeric($value))."= '$value';";
+                    $this->code[] = '    static $_' . strtoupper( $codeGenColumn->_strNamePhp . "_" . DbGenUtils::onlyAlphaNumeric( $value ) ) . "= '$value';";
                 }
-                $this->code[] = '    static $_'.$codeGenColumn->_strNamePhp.'_values= array(' . $s . ');';
+                $this->code[] = '    static $_' . $codeGenColumn->_strNamePhp . '_values= array(' . $s . ');';
             }
 
             $this->code[] = '';
@@ -404,12 +404,12 @@ class DbCodeGenerator
         $this->code[] = '    * @var array DB-PHP-Mapping';
         $this->code[] = '    */';
         $s = $sConstructorExample = $sConstructorExample2 = $sConstructorExample3 = "";
-        foreach ($tb->_arrColumns as $codeGenColumn ) {
-            $s .= ($s?', ':'')
-                . "'".$codeGenColumn->_strNameDB."'=>'_".$codeGenColumn->_strNamePhp."'";
-            $sConstructorExample  .= ($sConstructorExample?', ':'') . '$' . $codeGenColumn->_strNamePhp;
-            $sConstructorExample2  .= ($sConstructorExample2?', ':'') . '"_' . $codeGenColumn->_strNamePhp.'" => "val"';
-            $sConstructorExample3  .= ($sConstructorExample2?', ':'') . '"' . $codeGenColumn->_strNameDB.'" => "val"';
+        foreach ( $tb->_arrColumns as $codeGenColumn ) {
+            $s .= ( $s ? ', ' : '' )
+                . "'" . $codeGenColumn->_strNameDB . "'=>'_" . $codeGenColumn->_strNamePhp . "'";
+            $sConstructorExample .= ( $sConstructorExample ? ', ' : '' ) . '$' . $codeGenColumn->_strNamePhp;
+            $sConstructorExample2 .= ( $sConstructorExample2 ? ', ' : '' ) . '"_' . $codeGenColumn->_strNamePhp . '" => "val"';
+            $sConstructorExample3 .= ( $sConstructorExample2 ? ', ' : '' ) . '"' . $codeGenColumn->_strNameDB . '" => "val"';
         }
         $this->code[] = "    static \$_MAPPING = array($s);";
         $this->code[] = '';
@@ -425,15 +425,15 @@ class DbCodeGenerator
         $this->code[] = '';
 
         $strConstruct = '';
-        foreach ($tb->_arrColumns as $codeGenColumn ){
-            if ($codeGenColumn->_strDefault && $codeGenColumn->_strDefault ) {
-                $t = self::getType($codeGenColumn->_strType);
-                if ($t=="float" || $t=="double" || strpos($t,"int")!==false || $t=="decimal") {
-                    if (0+$codeGenColumn->_strDefault<>0) {
-                        $strConstruct.= '        $this->_' .$codeGenColumn->_strNamePhp.'='.$codeGenColumn->_strDefault.";\n";
+        foreach ( $tb->_arrColumns as $codeGenColumn ) {
+            if ( $codeGenColumn->_strDefault && $codeGenColumn->_strDefault ) {
+                $t = self::getType( $codeGenColumn->_strType );
+                if ( $t == "float" || $t == "double" || strpos( $t, "int" ) !== false || $t == "decimal" ) {
+                    if ( 0 + $codeGenColumn->_strDefault <> 0 ) {
+                        $strConstruct .= '        $this->_' . $codeGenColumn->_strNamePhp . '=' . $codeGenColumn->_strDefault . ";\n";
                     }
-                } elseif (strpos($t,"enum")!==false || strpos($t,"char")!==false || strpos($t,"text")!==false || strpos($t,"blob")!==false) {
-                    $strConstruct.= '        $this->_' .$codeGenColumn->_strNamePhp."='".$codeGenColumn->_strDefault."';\n";
+                } elseif ( strpos( $t, "enum" ) !== false || strpos( $t, "char" ) !== false || strpos( $t, "text" ) !== false || strpos( $t, "blob" ) !== false ) {
+                    $strConstruct .= '        $this->_' . $codeGenColumn->_strNamePhp . "='" . $codeGenColumn->_strDefault . "';\n";
                 }
             }
         }
@@ -441,14 +441,14 @@ class DbCodeGenerator
         $this->code[] = '
     /**
     * Three ways to call:
-    * new '.$tb->_strNamePhp.'( '. $sConstructorExample .' )
-    * new '.$tb->_strNamePhp.'( array('.$sConstructorExample2.' )
-    * new '.$tb->_strNamePhp.'( array('.$sConstructorExample3.' )
+    * new ' . $tb->_strNamePhp . '( ' . $sConstructorExample . ' )
+    * new ' . $tb->_strNamePhp . '( array(' . $sConstructorExample2 . ' )
+    * new ' . $tb->_strNamePhp . '( array(' . $sConstructorExample3 . ' )
     * First way, you need all parameters!
     * Second + third way number of parameters are optional.
     */
     public function __construct() {
-'.$strConstruct.'
+' . $strConstruct . '
         $arrArgs = func_get_args();
         $i = func_num_args();
         if ( ! $i || ! isset( $arrArgs ) || ! isset( $arrArgs[0] ) ) return;
@@ -585,10 +585,10 @@ class DbCodeGenerator
         $this->code[] = '    * @param string $strWhere';
         $this->code[] = '    * @param boolean $fCopy';
         $this->code[] = '    * @param string $strSelectColumns';
-        $this->code[] = '    * @return '.$tb->_strNamePhp;
+        $this->code[] = '    * @return ' . $tb->_strNamePhp;
         $this->code[] = '    */';
         $this->code[] = '    static function dbLoadSingle($strWhere, $fCopy=false, $strSelectColumns="") {';
-        $this->code[] = '        $obj = new '.$tb->_strNamePhp.'();';
+        $this->code[] = '        $obj = new ' . $tb->_strNamePhp . '();';
         $this->code[] = '        $obj->dbLoad($strWhere, $fCopy, $strSelectColumns);';
         $this->code[] = '        return $obj;';
         $this->code[] = '    }';
@@ -608,7 +608,7 @@ class DbCodeGenerator
         $this->code[] = '';
         $this->code[] = '    function dbLoad($strWhere, $fCopy=false) {';
         $this->code[] = '        $this->clear();';
-        $this->code[] = '        $arrDummy=dbQueryOne('.$tb->_strNamePhp.'::selectSQL($strWhere));';
+        $this->code[] = '        $arrDummy=dbQueryOne(' . $tb->_strNamePhp . '::selectSQL($strWhere));';
         $this->code[] = '        $this->fromDBRow($arrDummy);';
         $this->code[] = '        if ($fCopy) $this->setLoadDbObj();';
         $this->code[] = '        return count($arrDummy)>0;';
@@ -624,63 +624,63 @@ class DbCodeGenerator
         $strToBigCheck = "";
         $strEnumCheck = "";
         $strEmptyCheck = "";
-        foreach ($tb->_arrColumns as $codeGenColumn ){
-            $t = self::getType($codeGenColumn->_strType);
-            if ($codeGenColumn->_strKey!="PRI" && $codeGenColumn->_strNull!="YES" && ( !isset($codeGenColumn->strDefault) || !$codeGenColumn->strDefault) ) {
-                $strEmptyCheck .= ($strEmptyCheck?', ':'').'\'_'.$codeGenColumn->_strNamePhp.'\'';
+        foreach ( $tb->_arrColumns as $codeGenColumn ) {
+            $t = self::getType( $codeGenColumn->_strType );
+            if ( $codeGenColumn->_strKey != "PRI" && $codeGenColumn->_strNull != "YES" && ( ! isset( $codeGenColumn->strDefault ) || ! $codeGenColumn->strDefault ) ) {
+                $strEmptyCheck .= ( $strEmptyCheck ? ', ' : '' ) . '\'_' . $codeGenColumn->_strNamePhp . '\'';
             }
-            if (strpos($t,"enum")!==false) {
-                $strEnumCheck .= ($strEnumCheck?', ':'').'\'_'.$codeGenColumn->_strNamePhp.'\'=>self::$_' .$codeGenColumn->_strNamePhp .'_values';
-            } else if ($t=="int"|| $t=="tinyint" || $t=="decimal" || $t=="smallint" || $t=="bigint") {
-                $strNumberCheck .= ($strNumberCheck?', ':'') . '\'_'.$codeGenColumn->_strNamePhp.'\'';
-            } else if ($t=="float" || $t=="double") {
-                $this->code[] = "		if(!DbGenUtils::isFloat(\$this->_" .$codeGenColumn->_strNamePhp .")) {";
-                $this->code[] = "			\$arrErr[\"".  $tb->_strNamePhp . "-" . $codeGenColumn->_strNamePhp
-                    ."\"]=\"NO FLOAT/DOUBLE\";";
+            if ( strpos( $t, "enum" ) !== false ) {
+                $strEnumCheck .= ( $strEnumCheck ? ', ' : '' ) . '\'_' . $codeGenColumn->_strNamePhp . '\'=>self::$_' . $codeGenColumn->_strNamePhp . '_values';
+            } else if ( $t == "int" || $t == "tinyint" || $t == "decimal" || $t == "smallint" || $t == "bigint" ) {
+                $strNumberCheck .= ( $strNumberCheck ? ', ' : '' ) . '\'_' . $codeGenColumn->_strNamePhp . '\'';
+            } else if ( $t == "float" || $t == "double" ) {
+                $this->code[] = "		if(!DbGenUtils::isFloat(\$this->_" . $codeGenColumn->_strNamePhp . ")) {";
+                $this->code[] = "			\$arrErr[\"" . $tb->_strNamePhp . "-" . $codeGenColumn->_strNamePhp
+                    . "\"]=\"NO FLOAT/DOUBLE\";";
                 $this->code[] = "		}";
             }
-            $l = self::getLengthNumber($codeGenColumn->_strType);
-            if ($l && DbGenUtils::isNumber($l)
-                && (strpos($t,"int")!==false || $t=="decimal"
-                    || strpos($t,"char")!==false || strpos($t,"text")!==false
-                    || strpos($t,"blob")!==false)) {
-                $strToBigCheck .= ($strToBigCheck?', ':'') . '\'_'.$codeGenColumn->_strNamePhp.'\'=>'.$l;
+            $l = self::getLengthNumber( $codeGenColumn->_strType );
+            if ( $l && DbGenUtils::isNumber( $l )
+                && ( strpos( $t, "int" ) !== false || $t == "decimal"
+                    || strpos( $t, "char" ) !== false || strpos( $t, "text" ) !== false
+                    || strpos( $t, "blob" ) !== false ) ) {
+                $strToBigCheck .= ( $strToBigCheck ? ', ' : '' ) . '\'_' . $codeGenColumn->_strNamePhp . '\'=>' . $l;
             }
         }
-        if ($strNumberCheck) $this->code[] = '        $this->checkNumber( array('.$strNumberCheck.'), $arrErr);';
-        if ($strToBigCheck) $this->code[] = '        $this->checkToBig( array('.$strToBigCheck.'), $arrErr);';
-        if ($strEnumCheck) $this->code[] = '        $this->checkEnum( array('.$strEnumCheck.'), $arrErr);';
-        if ($strEmptyCheck) $this->code[] = '        $this->checkEmpty( array('.$strEmptyCheck.'), $arrErr);';
+        if ( $strNumberCheck ) $this->code[] = '        $this->checkNumber( array(' . $strNumberCheck . '), $arrErr);';
+        if ( $strToBigCheck ) $this->code[] = '        $this->checkToBig( array(' . $strToBigCheck . '), $arrErr);';
+        if ( $strEnumCheck ) $this->code[] = '        $this->checkEnum( array(' . $strEnumCheck . '), $arrErr);';
+        if ( $strEmptyCheck ) $this->code[] = '        $this->checkEmpty( array(' . $strEmptyCheck . '), $arrErr);';
         $this->code[] = '        return $arrErr;';
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
 
-        if ($strEmptyCheck) {
+        if ( $strEmptyCheck ) {
             $this->code[] = '    function checkEmpty($arrMembers, $arrErr) {';
             $this->code[] = '        foreach ($arrMembers as $strMember) {';
-            $this->code[] = '            if (!isset($this->$strMember) || \'\'.$this->$strMember==\'\') $arrErr["'.$tb->_strNamePhp.'-".substr($strMember,1)]="must have a value";';
+            $this->code[] = '            if (!isset($this->$strMember) || \'\'.$this->$strMember==\'\') $arrErr["' . $tb->_strNamePhp . '-".substr($strMember,1)]="must have a value";';
             $this->code[] = '        }';
             $this->code[] = '    }';
         }
-        if ($strNumberCheck) {
+        if ( $strNumberCheck ) {
             $this->code[] = '    function checkNumber($arrMembers, $arrErr) {';
             $this->code[] = '        foreach ($arrMembers as $strMember) {';
-            $this->code[] = '            if (!DbGenUtils::isNumber($this->$strMember)) $arrErr["'.$tb->_strNamePhp.'-".substr($strMember,1)]="NO NUMBER";';
+            $this->code[] = '            if (!DbGenUtils::isNumber($this->$strMember)) $arrErr["' . $tb->_strNamePhp . '-".substr($strMember,1)]="NO NUMBER";';
             $this->code[] = '        }';
             $this->code[] = '    }';
         }
-        if ($strToBigCheck) {
+        if ( $strToBigCheck ) {
             $this->code[] = '    function checkToBig($arrMembers, $arrErr) {';
             $this->code[] = '        foreach ($arrMembers as $strMember=>$nLen) {';
-            $this->code[] = '          if (isset($this->$strMember) && strlen(""+$this->$strMember)>$nLen) $arrErr["'.$tb->_strNamePhp.'-".substr($strMember,1)]="TO BIG";';
+            $this->code[] = '          if (isset($this->$strMember) && strlen(""+$this->$strMember)>$nLen) $arrErr["' . $tb->_strNamePhp . '-".substr($strMember,1)]="TO BIG";';
             $this->code[] = '        }';
             $this->code[] = '    }';
         }
-        if ($strEnumCheck) {
+        if ( $strEnumCheck ) {
             $this->code[] = '    function checkEnum($arrMembers, $arrErr) {';
             $this->code[] = '        foreach ($arrMembers as $strMember => $arrValues) {';
-            $this->code[] = '            if (isset($this->$strMember) && $this->$strMember && !in_array($this->$strMember, $arrValues)) $arrErr["'.$tb->_strNamePhp.'-".substr($strMember,1)]="BAD VALUE";';
+            $this->code[] = '            if (isset($this->$strMember) && $this->$strMember && !in_array($this->$strMember, $arrValues)) $arrErr["' . $tb->_strNamePhp . '-".substr($strMember,1)]="BAD VALUE";';
             $this->code[] = '        }';
             $this->code[] = '    }';
         }
@@ -692,34 +692,34 @@ class DbCodeGenerator
         $this->code[] = '    function insertSQL() {';
         if ( $tb->_strAutoIncrCol ) {
             $phpN = '';
-            foreach ($tb->_arrColumns as $codeGenColumn ) {
+            foreach ( $tb->_arrColumns as $codeGenColumn ) {
                 if ( $tb->_strAutoIncrCol == $codeGenColumn->_strNameDB ) {
                     $phpN = $codeGenColumn->_strNamePhp;
                     break;
                 }
             }
-            $neededComma = count($tb->_arrColumns) > 1 ? ',' : '';
-            $strAutoCol = "\".(\$this->_" . $phpN . "? '`".$tb->_strAutoIncrCol."`$neededComma ' : '').\"";
-            $strAutoVal = "\".(\$this->_" . $phpN . "? (0+\$this->_" .$phpN.").'$neededComma' : '').\"";
+            $neededComma = count( $tb->_arrColumns ) > 1 ? ',' : '';
+            $strAutoCol = "\".(\$this->_" . $phpN . "? '`" . $tb->_strAutoIncrCol . "`$neededComma ' : '').\"";
+            $strAutoVal = "\".(\$this->_" . $phpN . "? (0+\$this->_" . $phpN . ").'$neededComma' : '').\"";
         } else $strAutoCol = $strAutoVal = '';
-        $s = "" ;
+        $s = "";
         $s2 = "";
-        foreach ($tb->_arrColumns as $codeGenColumn ) {
+        foreach ( $tb->_arrColumns as $codeGenColumn ) {
             if ( $tb->_strAutoIncrCol == $codeGenColumn->_strNameDB ) continue;
             $default = $codeGenColumn->_strDefault;
 
-            $strComma = $s2? ",\"\n\t\t.\"" : "";
-            $s .= "$strComma `".$codeGenColumn->_strNameDB."`";
+            $strComma = $s2 ? ",\"\n\t\t.\"" : "";
+            $s .= "$strComma `" . $codeGenColumn->_strNameDB . "`";
 
             if ( $codeGenColumn->_strDefaultSql === 'NULL' ) {
-                $s2 .= "$strComma \" .(isset(\$this->_" .$codeGenColumn->_strNamePhp.")? \"'\".dbEscStr(\$this->_" .$codeGenColumn->_strNamePhp .").\"'\":\"null\").\"";
+                $s2 .= "$strComma \" .(isset(\$this->_" . $codeGenColumn->_strNamePhp . ")? \"'\".dbEscStr(\$this->_" . $codeGenColumn->_strNamePhp . ").\"'\":\"null\").\"";
             } elseif ( $codeGenColumn->_strDefault === 'CURRENT_TIMESTAMP' ) {
-                $s2 .= "$strComma \" .(isset(\$this->_" .$codeGenColumn->_strNamePhp.")? \"'\".dbEscStr(\$this->_" .$codeGenColumn->_strNamePhp .").\"'\":\"NOW()\").\"";
+                $s2 .= "$strComma \" .(isset(\$this->_" . $codeGenColumn->_strNamePhp . ")? \"'\".dbEscStr(\$this->_" . $codeGenColumn->_strNamePhp . ").\"'\":\"NOW()\").\"";
             } else {
-                $s2 .= "$strComma '\" .(isset(\$this->_" .$codeGenColumn->_strNamePhp.")? dbEscStr(\$this->_" .$codeGenColumn->_strNamePhp ."): " . $tb->_strNamePhp . '::$_' . strtoupper(  $codeGenColumn->_strNamePhp ) . "_DEFAULT) . \"'";
+                $s2 .= "$strComma '\" .(isset(\$this->_" . $codeGenColumn->_strNamePhp . ")? dbEscStr(\$this->_" . $codeGenColumn->_strNamePhp . "): " . $tb->_strNamePhp . '::$_' . strtoupper( $codeGenColumn->_strNamePhp ) . "_DEFAULT) . \"'";
             }
         }
-        $this->code[] = "        return  \"insert into `".$tb->_strNameDB ."` ($strAutoCol$s) values ($strAutoVal$s2)\";";
+        $this->code[] = "        return  \"insert into `" . $tb->_strNameDB . "` ($strAutoCol$s) values ($strAutoVal$s2)\";";
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
@@ -731,30 +731,30 @@ class DbCodeGenerator
         $this->code[] = '    */';
         $this->code[] = '    function updateSQL($strWhere="", $fOnlySet=false) {';
         $s2 = $w = $strSinglePrimKey = $strSinglePrimKey2 = "";
-        foreach ($tb->_arrColumns as $codeGenColumn ){
-            if ($codeGenColumn->_strKey=="PRI") {
-                if ($w) {
+        foreach ( $tb->_arrColumns as $codeGenColumn ) {
+            if ( $codeGenColumn->_strKey == "PRI" ) {
+                if ( $w ) {
                     $w .= " and ";
-                    $strSinglePrimKey='';
-                } else $strSinglePrimKey = "`".( $strSinglePrimKey2=$codeGenColumn->_strNameDB) . "`";
-                $w .= "`".$codeGenColumn->_strNameDB."`='\" .dbEscStr(\$this->_" .$codeGenColumn->_strNamePhp .").\"'";
+                    $strSinglePrimKey = '';
+                } else $strSinglePrimKey = "`" . ( $strSinglePrimKey2 = $codeGenColumn->_strNameDB ) . "`";
+                $w .= "`" . $codeGenColumn->_strNameDB . "`='\" .dbEscStr(\$this->_" . $codeGenColumn->_strNamePhp . ").\"'";
             }
         }
-        $this->code[] = '        if (!$strWhere) $strWhere="' . $w .'";';
-        $this->code[] = "        return \"update `".$tb->_strNameDB ."` set \" .\$this->dbSetCols(\$fOnlySet).' where '.\$strWhere;";
+        $this->code[] = '        if (!$strWhere) $strWhere="' . $w . '";';
+        $this->code[] = "        return \"update `" . $tb->_strNameDB . "` set \" .\$this->dbSetCols(\$fOnlySet).' where '.\$strWhere;";
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
         $this->code[] = '    static function dbLoadMany($strWhere, $fCopy=false, $strSelectColumns="") {';
         $this->code[] = '        if (stripos($strWhere, "limit ")===false) $strWhere .= " limit 0, 500";';
         $this->code[] = '        $arr = array();';
-        $this->code[] = '        $result = dbQuery('.$tb->_strNamePhp.'::selectSQL($strWhere, $strSelectColumns));';
+        $this->code[] = '        $result = dbQuery(' . $tb->_strNamePhp . '::selectSQL($strWhere, $strSelectColumns));';
         $this->code[] = '        if ($result) {';
         $this->code[] = '           while ($row=mysqli_fetch_assoc($result)) {';
-        $this->code[] = '               $o = new '.$tb->_strNamePhp.'();';
+        $this->code[] = '               $o = new ' . $tb->_strNamePhp . '();';
         $this->code[] = '               $o->fromDBRow($row);';
         $this->code[] = '               if ($fCopy) $o->setLoadDbObj();';
-        if ($strSinglePrimKey)   $this->code[] = "               \$arr[''.\$row['$strSinglePrimKey2']] = \$o;";
+        if ( $strSinglePrimKey ) $this->code[] = "               \$arr[''.\$row['$strSinglePrimKey2']] = \$o;";
         else                     $this->code[] = "               \$arr[] = \$o;";
         $this->code[] = '           } ';
         $this->code[] = '           dbFreeResult($result);';
@@ -770,8 +770,8 @@ class DbCodeGenerator
         $this->code[] = '    * @return string   SQL Query for a select command with all columns';
         $this->code[] = '    */';
         $this->code[] = '    static function selectSQL($strWhere, $strSelect="") {';
-        if ($strSinglePrimKey)   $this->code[] = '        if (((string)((int) $strWhere)) == ((string) $strWhere)) $strWhere="'.$strSinglePrimKey.'=".(0+$strWhere);';
-        $this->code[] = "        return \"select \" . ( \$strSelect ? \$strSelect : self::dbColNames() ) . \" from `".$tb->_strNameDB."`\".(\$strWhere?' where ':'') .\$strWhere;";
+        if ( $strSinglePrimKey ) $this->code[] = '        if (((string)((int) $strWhere)) == ((string) $strWhere)) $strWhere="' . $strSinglePrimKey . '=".(0+$strWhere);';
+        $this->code[] = "        return \"select \" . ( \$strSelect ? \$strSelect : self::dbColNames() ) . \" from `" . $tb->_strNameDB . "`\".(\$strWhere?' where ':'') .\$strWhere;";
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
@@ -780,8 +780,8 @@ class DbCodeGenerator
         $this->code[] = '    * @return string   SQL Query for a delete command';
         $this->code[] = '    */';
         $this->code[] = "    function deleteSQL(\$strWhere='') {";
-        $this->code[] = '        if (!$strWhere) $strWhere="' . $w .'";';
-        $this->code[] = "        return \"delete from `".$tb->_strNameDB."` where \".\$strWhere;";
+        $this->code[] = '        if (!$strWhere) $strWhere="' . $w . '";';
+        $this->code[] = "        return \"delete from `" . $tb->_strNameDB . "` where \".\$strWhere;";
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
@@ -802,20 +802,20 @@ class DbCodeGenerator
         $this->code[] = '/** this class was automatically generated by class-gen **/';
         $this->code[] = '?>';
 
-        $this->code = implode("\n", $this->code);
+        $this->code = implode( "\n", $this->code );
     }
 
-    static function getLengthNumber(&$strFieldInfo) {
-        $pos1 = strpos($strFieldInfo, "(");
-        $pos2 = strpos($strFieldInfo, ")");
-        if ($pos1===false || $pos2===false) return false;
-        return substr($strFieldInfo, $pos1+1, $pos2-$pos1 -1);
+    static function getLengthNumber( &$strFieldInfo ) {
+        $pos1 = strpos( $strFieldInfo, "(" );
+        $pos2 = strpos( $strFieldInfo, ")" );
+        if ( $pos1 === false || $pos2 === false ) return false;
+        return substr( $strFieldInfo, $pos1 + 1, $pos2 - $pos1 - 1 );
     }
 
-    static function getType(&$strFieldInfo) {
-        $pos1 = strpos($strFieldInfo, "(");
-        if ($pos1===false) return $strFieldInfo;
-        return substr($strFieldInfo, 0, $pos1);
+    static function getType( &$strFieldInfo ) {
+        $pos1 = strpos( $strFieldInfo, "(" );
+        if ( $pos1 === false ) return $strFieldInfo;
+        return substr( $strFieldInfo, 0, $pos1 );
     }
 
     /**
@@ -824,12 +824,12 @@ class DbCodeGenerator
      * @param string filename
      * @param string content
      */
-    function writeFile(CodeGenTable $tb) {
-        $strFilename = $this->_strPath . $tb->_strNamePhp.".php";
-        $fh = fopen($strFilename, 'w');
-        if ($fh) {
-            fwrite($fh, $this->code);
-            fclose($fh);
+    function writeFile( CodeGenTable $tb ) {
+        $strFilename = $this->_strPath . $tb->_strNamePhp . ".php";
+        $fh = fopen( $strFilename, 'w' );
+        if ( $fh ) {
+            fwrite( $fh, $this->code );
+            fclose( $fh );
             echo "$strFilename created<br/>";
 
         } else echo "CAN NOT WRITE $strFilename";
@@ -845,32 +845,33 @@ class DbCodeGenerator
      * @param string $strPrefix like get, set or is
      * @return string output camel-case foramtted string
      */
-    function rename($strMySqlName, $strPrefix = '') {
-        if ($strPrefix && strpos(strtolower($strMySqlName), strtolower($strPrefix))===0) {
-            $strMySqlName = substr($strMySqlName, strlen($strPrefix));
+    function rename( $strMySqlName, $strPrefix = '' ) {
+        if ( $strPrefix && strpos( strtolower( $strMySqlName ), strtolower( $strPrefix ) ) === 0 ) {
+            $strMySqlName = substr( $strMySqlName, strlen( $strPrefix ) );
         }
-        $arrParts = explode('_', $strMySqlName);
+        $arrParts = explode( '_', $strMySqlName );
         $strReturn = '';
 
-        foreach ($arrParts as $p => $strPart){
+        foreach ( $arrParts as $p => $strPart ) {
             //	the first letter had to be lowercase
-            if (!$strReturn) {
-                $strReturn .= strtolower($strPart);
+            if ( ! $strReturn ) {
+                $strReturn .= strtolower( $strPart );
             } else {
-                $strReturn .= ucfirst(strtolower($strPart));
+                $strReturn .= ucfirst( strtolower( $strPart ) );
             }
         }
         //echo count($arrParts)."rename($strMySqlName)=$strReturn, ";
-        return	$strReturn;
+        return $strReturn;
     }
 
     /**
      * debug stuff to console output
      */
-    function debug($str) {
-        if ($this->_debug) {
-            echo 'debug: '.$str."\n";
+    function debug( $str ) {
+        if ( $this->_debug ) {
+            echo 'debug: ' . $str . "\n";
         }
     }
 }
+
 ?>

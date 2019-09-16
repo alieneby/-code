@@ -68,7 +68,12 @@ if ( ! function_exists('dbQuery') && ! empty ( Config::$_DB_DB ) ) {
         $myLinkId = $myLinkId ? $myLinkId : AlienDB::$_linkId;
 
         if ( ! $myLinkId ) {
-            return Log::system_error( "No database link!", __METHOD__, __LINE__, __FILE__ );                
+            if ( ! empty( Config::$_DB_DB ) ) {
+                Alien::$_db_link = $myLinkId = AlienDB::$_linkId = dbConnector();
+            }
+        }
+        if ( ! $myLinkId ) {
+            return Log::system_error( "No database link!", __METHOD__, __LINE__, __FILE__ );
         }
 
         list( $strMethod, $strLine, $strFile, $strCaller) = dbQueryCaller();
