@@ -75,13 +75,6 @@ class CodeGenTable {
 }
 
 /**
- * @package php.tools
- * Created on 10.11.2005 by Robert Kummer <r.kummer@ipunkt.biz>
- * Extented by Martin Sch�dler ms@alien.de
- * $Id$
- *
- * this class generates automatically a class by given sql table
- * it uses commandline access
  */
 class DbCodeGenerator {
     var $_strPath = ''; // with slash at the end

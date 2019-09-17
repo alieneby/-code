@@ -15,7 +15,11 @@ class 👽 {
     static $_db_link;
 
     static function init() {
-        if ( ! empty( Config::$_DB_DB ) && empty( Config::$_DB_CONNECT_ON_SQL) ) self::$_db_link = dbConnector();
+        if ( ! empty( Config::$_DB_DB )
+            && ( empty( Config::$_DB_CONNECT_AUTOMATICLY ) || Config::$_DB_CONNECT_AUTOMATICLY ) )
+        {
+            self::$_db_link = dbConnector();
+        }
     }
 
 
@@ -27,7 +31,7 @@ class 👽 {
      * @param string $strOutput
      */
     static function exitNow( $strLastLogMessage = '', $nHttpErrCode = 0, $strOutput = "" ) {
-        list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller();
+        list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
         $strUri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'shell';
 
         Log::$_strLastLogMessage = $strLastLogMessage;

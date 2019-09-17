@@ -29,7 +29,7 @@ class Log {
     public static function info( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
         if ( empty( Config::$_fDebug ) ) return;
         if ( ! "$strMethod$strLine$strFile" ) {
-            list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller();
+            list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
         }
         self::add( 'i', $str, $strMethod, $strLine, $strFile );
         return true;
@@ -37,7 +37,7 @@ class Log {
 
     public static function always( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
         if ( ! "$strMethod$strLine$strFile" ) {
-            list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller();
+            list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
         }
         self::add( 'a', $str, $strMethod, $strLine, $strFile );
         return true;
@@ -46,7 +46,7 @@ class Log {
     public static function error( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
         self::$_nErrors = self::$_nErrors + 1;
         if ( ! "$strMethod$strLine$strFile" ) {
-            list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller();
+            list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0,2 ) );
         }
         self::add( 'e', $str, $strMethod, $strLine, $strFile );
         return false;
@@ -55,7 +55,7 @@ class Log {
     public static function system_error( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
         self::$_nSystemErrors = self::$_nSystemErrors + 1;
         if ( ! "$strMethod$strLine$strFile" ) {
-            list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller();
+            list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
         }
         error_log( "$strFile#$strLine $strMethod(): " . addslashes( $str ) );
         if ( ! empty( Config::$_fSytemErrorDirectOutput ) ) {
