@@ -172,11 +172,11 @@ class Log {
             . "ProcessID:  " . Log::$_nPid . "\n"
             . "Result Msg: " . Log::$_strLastLogMessage . "\n";
 
-        if ( self::$_nErrors ) ) {
+        if ( self::$_nErrors ) {
             $arrErr = Log::filter( 'es' ); // errors and system_errors
             $strErr = implode( "\n", Log::toLogLines( $arrErr ) );
         } else {
-            $arrErr = '';
+            $strErr = '';
         }
 
         $strDebgugTrace = implode( "\n", Log::toLogLines( Log::$_arr ) );
