@@ -160,7 +160,6 @@ class Log {
         }
 
         $strUri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'shell';
-        $arrErr = Log::filter( 'es' ); // errors and system_errors
         $strTotalTime = sprintf( "%.4f", ( microtime( true ) - Log::$_strStartTimestamp ) );
 
         $strStats
@@ -173,7 +172,12 @@ class Log {
             . "ProcessID:  " . Log::$_nPid . "\n"
             . "Result Msg: " . Log::$_strLastLogMessage . "\n";
 
-        $strErr = implode( "\n", Log::toLogLines( $arrErr ) );
+        if ( count( $arrErr ) ) {
+            $arrErr = Log::filter( 'es' ); // errors and system_errors
+            $strErr = implode( "\n", Log::toLogLines( $arrErr ) );
+        } else {
+            $arrErr = '';
+        }
 
         $strDebgugTrace = implode( "\n", Log::toLogLines( Log::$_arr ) );
 
