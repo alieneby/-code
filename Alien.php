@@ -15,10 +15,8 @@ class 👽 {
     static $_db_link;
 
     static function init() {
-        if ( ! empty( Config::$_DB_DB )
-            && ( empty( Config::$_DB_CONNECT_AUTOMATICLY ) || Config::$_DB_CONNECT_AUTOMATICLY ) )
-        {
-            self::$_db_link = dbConnector();
+        if ( ! empty( Config::$_DB_DB ) ) {
+            if ( ! isset( Config::$_DB_CONNECT_AUTOMATICLY ) || Config::$_DB_CONNECT_AUTOMATICLY ) dbConnector();
         }
     }
 
