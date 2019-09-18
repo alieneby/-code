@@ -47,12 +47,12 @@ class 👽 {
 
         if ( $strOutput ) echo $strOutput;
 
-        if ( ! empty( Config::$_DB_DEBUG_TABLE ) ) {
-            Log::toDatabase();
-        }
-
         if ( ! empty( Config::$_strDebugLog ) ) {
             Log::toLogFile();
+        }
+
+        if ( ! empty( Config::$_DB_DEBUG_TABLE ) ) {
+            Log::toDatabase();
         }
 
         exit();
