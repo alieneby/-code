@@ -155,7 +155,7 @@ class Log {
             return Log::info( 'Not set Config::$_DB_DEBUG_TABLE. So no debugging into database' );
         }
 
-        if ( empty( 👽::$_db_link ) ) {
+        if ( empty( AlienDB::$_linkId ) ) {
             return Log::system_error( 'No database connection. Check Config for DB settings!' );
         }
 

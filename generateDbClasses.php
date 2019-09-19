@@ -9,7 +9,7 @@ if ( empty( Config::$_strGeneratedDbClassesPath ) ) {
     👽::🖖( $strErr );
 }
 
-if ( empty( Alien::$_db_link ) ) Alien::$_db_link = dbConnector();
+if ( empty( AlienDB::$_linkId ) ) dbConnector();
 
 $a = new DbCodeGenerator( Config::$_strGeneratedDbClassesPath );
 

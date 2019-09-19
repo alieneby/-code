@@ -12,11 +12,12 @@ if ( ! empty( Config::$_DB_DB ) ) {
 }
 
 class 👽 {
-    static $_db_link;
 
     static function init() {
         if ( ! empty( Config::$_DB_DB ) ) {
-            if ( ! isset( Config::$_DB_CONNECT_AUTOMATICLY ) || Config::$_DB_CONNECT_AUTOMATICLY ) dbConnector();
+            if ( ! isset( Config::$_DB_CONNECT_AUTOMATICLY ) || Config::$_DB_CONNECT_AUTOMATICLY ) {
+                dbConnector();
+            }
         }
     }
 
