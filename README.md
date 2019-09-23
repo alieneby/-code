@@ -1,4 +1,7 @@
-# Alien Framework Code
+# 👽 Alien Framework for PHP
 
-Examples are located in this git repository:
-https://github.com/alieneby/alien-framework-examples
+The framework (that is where are you now):
+Please see https://github.com/alieneby/alien-framework-code
+
+The examples:
+Please see https://github.com/alieneby/alien-framework-examples
