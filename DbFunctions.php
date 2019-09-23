@@ -26,8 +26,6 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
 
 
     /**
-     * @return numeric tblink
-     * @see Config:$_DB
      */
     function dbConnector() {
         Log::info( "started", __METHOD__, __LINE__, __FILE__ );
@@ -56,7 +54,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
 
     /**
      * Execute SQL query and return result of mysqli_query().
-     * Do also some time log, dubug and error handling things.
+     * Do also some time log, debug and error handling things.
      * @param string $strQuery
      * @param bool fDebug    true add sql to debug container, false = do not log sql.
      * @param resource $myLinkId
@@ -151,15 +149,15 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
     /**
      * Execute SQL query and return first row as array (default is MYSQLI_ASSOC).
      * @param String $strQuery
-     * @param mysqlLink $linkID
-     * @param type $resultType (optional) Possible values are MYSQLI_ASSOC, MYSQLI_NUM, or MYSQLI_BOTH
+     * @param int $linkID
+     * @param $resultType (optional) Possible values are MYSQLI_ASSOC, MYSQLI_NUM, or MYSQLI_BOTH
      * @return array                    Result of SQL (Perhaps empty, but never false or null).
      */
     function dbQueryOne( $strQuery, $linkID = 0, $resultType = MYSQLI_ASSOC ) {
         if ( strpos( $strQuery, " limit 0, 1" ) === false ) {
             $strQuery .= " limit 0, 1";
         }
-        $result = dbQuery( $strQuery, true, '', $linkID );
+        $result = dbQuery( $strQuery, true, $linkID );
         if ( $result && $row = mysqli_fetch_array( $result, $resultType ) ) {
             dbFreeResult( $result );
             return $row;
@@ -209,7 +207,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
     /**
      * Execute SQL query and return result in a simple array
      * @param String $strQuery
-     * @return Array
+     * @return array
      */
     function dbQueryAllOneColumn( $strQuery ) {
         if ( stripos( $strQuery, "limit " ) === false ) $strQuery .= " limit 0, 500";
@@ -218,6 +216,25 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
         if ( $result ) {
             while ( $row = mysqli_fetch_row( $result ) ) {
                 $arr = $row[0];
+            }
+            dbFreeResult( $result );
+        }
+        return $arr;
+    }
+
+
+    /**
+     * Execute SQL query and return array
+     * @param String $strQuery
+     * @return array
+     */
+    function dbQueryAllOneArray( $strQuery ) {
+        if ( stripos( $strQuery, "limit " ) === false ) $strQuery .= " limit 0, 500";
+        $arr = array();
+        $result = dbQuery( $strQuery );
+        if ( $result ) {
+            while ( $row = mysqli_fetch_row( $result ) ) {
+                $arr[] = $row;
             }
             dbFreeResult( $result );
         }
@@ -248,7 +265,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
         if ( ! $result ) return;
         mysqli_free_result( $result );
         $strSeconds = sprintf( "%.4f", ( microtime( true ) - AlienDB::$_dbTimeQueryEnd ) );
-        Log::info( "db result loaded in strSeconds sec" );
+        Log::info( "db result loaded in $strSeconds sec" );
     }
 
     function dbErrno( $myLinkId = null ) {
@@ -317,4 +334,3 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
         return mysqli_close( $myLinkId );
     }
 }
-?>
