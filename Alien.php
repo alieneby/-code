@@ -39,7 +39,7 @@ class 👽 {
             if ( $nHttpErrCode >= 200 && $nHttpErrCode < 300 ) {
                 header( "HTTP/1.0 $nHttpErrCode" );
             } else {
-                Log::error( $strLastLogMessage, $strMethod, $strLine, $strFile );
+                // Log::error( $strLastLogMessage, $strMethod, $strLine, $strFile );
                 header( "HTTP/1.0 $nHttpErrCode $strLastLogMessage" );
             }
         }
