@@ -148,7 +148,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
 
     /**
      * Execute SQL query and return first row as array (default is MYSQLI_ASSOC).
-     * @param String $strQuery
+     * @param string $strQuery
      * @param int $linkID
      * @param $resultType (optional) Possible values are MYSQLI_ASSOC, MYSQLI_NUM, or MYSQLI_BOTH
      * @return array                    Result of SQL (Perhaps empty, but never false or null).
@@ -166,14 +166,19 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
         }
     }
 
+    /**
+     * Return the first row as indexed array
+     * @param string $strQuery 
+     * @return array Only the first row
+     */
     function dbQueryOneList( $strQuery, $linkID = 0 ) {
         return dbQueryOne( $strQuery, $linkID, MYSQLI_NUM );
     }
 
     /**
      * Execute SQL query and return first data string of first row.
-     * @param String $strQuery
-     * @return String Result of SQL
+     * @param string $strQuery
+     * @return string Result of SQL
      */
     function dbQueryOneStr( $strQuery, $linkID = 0 ) {
         AlienDB::$_DB_LAST_SINGLE_STR = '';
@@ -187,8 +192,8 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
 
     /**
      * Execute SQL query and return result in one string
-     * @param String $strQuery
-     * @return String Result of SQL
+     * @param string $strQuery
+     * @return string Result of SQL
      */
     function dbQueryOneStrSeparated( $strQuery, $strColSep = ',', $strRowSep = ',' ) {
         if ( stripos( $strQuery, "limit " ) === false ) $strQuery .= " limit 0, 500";
@@ -206,8 +211,8 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
 
     /**
      * Execute SQL query and return result in a simple array
-     * @param String $strQuery
-     * @return array
+     * @param string $strQuery
+     * @return array All found rows, but only the first column.
      */
     function dbQueryAllOneColumn( $strQuery ) {
         if ( stripos( $strQuery, "limit " ) === false ) $strQuery .= " limit 0, 500";
@@ -215,7 +220,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
         $result = dbQuery( $strQuery );
         if ( $result ) {
             while ( $row = mysqli_fetch_row( $result ) ) {
-                $arr = $row[0];
+                $arr[] = $row[0];
             }
             dbFreeResult( $result );
         }
@@ -225,7 +230,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
 
     /**
      * Execute SQL query and return array
-     * @param String $strQuery
+     * @param string $strQuery
      * @return array
      */
     function dbQueryAllOneArray( $strQuery ) {
