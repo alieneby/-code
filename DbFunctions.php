@@ -69,6 +69,8 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
             return Log::system_error( "No database link!", __METHOD__, __LINE__, __FILE__ );
         }
 
+        $strQuery = trim( $strQuery );
+
         list( $strMethod, $strLine, $strFile, $strCaller ) = dbQueryCaller();
 
         $fErr = false;
