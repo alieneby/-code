@@ -102,6 +102,7 @@ class Log {
     }
 
     /**
+     * Return an unsorted list <ul><li>...</li></ul>
      * @return string Complete debug log as html with "<br />\n"
      */
     public static function toHtml() {
