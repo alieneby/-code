@@ -97,7 +97,7 @@ class Config {
      * @see Config::init()
      * @var boolean $_fIsProduction
      */
-    static $_fIsProduction; /
+    static $_fIsProduction; 
 
     /**
      * (Mandatory) Path to to this folder.
@@ -134,8 +134,19 @@ class Config {
 
         Config::yourInit(); // are we on a local test system, then use different values.
 
-        $strAlienFramework = realpath( Config::$_strAbsPath . '/' . Config::$_strAlien );
-        $strGeneratedDbClasses = ! empty( Config::$_strGeneratedDbClassesPath ) ? realpath( Config::$_strGeneratedDbClassesPath ) : '';
+        $strAlienFramework 
+            = ( substr( Config::$_strAlien, 0, 1 ) == '/' || substr( Config::$_strAlien, 1, 2 ) == ':/' )
+            ? Config::$_strAlien
+            : realpath( Config::$_strAbsPath . '/' . Config::$_strAlien );
+
+        $strGeneratedDbClasses = '';
+        if ( ! empty( Config::$_strGeneratedDbClassesPath )  ) {
+            $strGeneratedDbClasses 
+                = ( substr( Config::$_strGeneratedDbClassesPath, 0, 1 ) == '/' || substr( Config::$_strGeneratedDbClassesPath, 1, 2 ) == ':/' )
+                ? Config::$_strGeneratedDbClassesPath
+                : realpath( Config::$_strAbsPath . '/' . Config::$_strGeneratedDbClassesPath );
+        } 
+
         set_include_path( $strAlienFramework . PATH_SEPARATOR  . $strGeneratedDbClasses . PATH_SEPARATOR . Config::$_strAbsPath );
         chdir( Config::$_strAbsPath );
     }
