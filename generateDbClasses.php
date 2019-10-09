@@ -1,7 +1,7 @@
 <?php
-require_once 'Config.php';
-require_once Config::$_strAlien . '/Alien.php';
-include_once Config::$_strAlien . "/DbCodeGenerator.php";
+require_once( 'Config.php' );
+require_once( 'Alien.php' );
+include_once( 'DbCodeGenerator.php' );
 
 if ( empty( Config::$_strGeneratedDbClassesPath ) ) {
     $strErr = 'Please set Config::$_strGeneratedDbClassesPath!';

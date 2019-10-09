@@ -47,7 +47,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
             mysqli_set_charset( AlienDB::$_linkId, "utf8" );
             //mysqli_query( AlienDB::$_linkId, "SET SESSION sql_mode='TRADITIONAL'");            
         } else {
-            Log::system_error( "Can not connect to database", __METHOD__, __LINE__, __FILE__ );
+            Log::systemError( "Can not connect to database", __METHOD__, __LINE__, __FILE__ );
         }
         return AlienDB::$_linkId;
     }
@@ -66,7 +66,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
         $myLinkId = $myLinkId ? $myLinkId : AlienDB::$_linkId;
 
         if ( ! $myLinkId ) {
-            return Log::system_error( "No database link!", __METHOD__, __LINE__, __FILE__ );
+            return Log::systemError( "No database link!", __METHOD__, __LINE__, __FILE__ );
         }
 
         $strQuery = trim( $strQuery );
@@ -97,10 +97,10 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
 
         if ( mysqli_errno( $myLinkId ) ) {
             $fErr = true;
-            if ( empty( Config::$_DB_DB ) ) Log::system_error( "PLEASE SET Config::_DB* values!!!", $strMethod, $strLine, $strFile );
+            if ( empty( Config::$_DB_DB ) ) Log::systemError( "PLEASE SET Config::_DB* values!!!", $strMethod, $strLine, $strFile );
             else {
                 AlienDB::$_strDbErrMsg = '[' . mysqli_errno( $myLinkId ) . '] ' . mysqli_error( $myLinkId );
-                Log::system_error( $strQuery . "<br>\n" . AlienDB::$_strDbErrMsg, $strMethod, $strLine, $strFile );
+                Log::systemError( $strQuery . "<br>\n" . AlienDB::$_strDbErrMsg, $strMethod, $strLine, $strFile );
             }
         }
 

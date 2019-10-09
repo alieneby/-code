@@ -52,7 +52,7 @@ class Log {
         return false;
     }
 
-    public static function system_error( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
+    public static function systemError( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
         self::$_nSystemErrors = self::$_nSystemErrors + 1;
         if ( ! "$strMethod$strLine$strFile" ) {
             list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
@@ -122,7 +122,7 @@ class Log {
         }
 
         $strUri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'shell';
-        $arrErr = Log::filter( 'es' ); // errors and system_errors
+        $arrErr = Log::filter( 'es' ); // errors and system errors
 
         $str = "\n\n----------------- START " . ' at ' . gmdate( 'Y-m-d H:i:s' ) . " ----------------------\n";
         $str .= implode( "\n", Log::toLogLines( Log::$_arr ) );
@@ -144,7 +144,7 @@ class Log {
         if ( @file_put_contents( Config::$_strDebugLog, $str, FILE_APPEND ) ) {
             return true;
         } else {
-            return Log::system_error( Config::$_strDebugLog . ' is not writeable!' );
+            return Log::systemError( Config::$_strDebugLog . ' is not writeable!' );
         }
     }
 
@@ -157,7 +157,7 @@ class Log {
         }
 
         if ( empty( AlienDB::$_linkId ) ) {
-            return Log::system_error( 'No database connection. Check Config for DB settings!' );
+            return Log::systemError( 'No database connection. Check Config for DB settings!' );
         }
 
         $strUri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'shell';
@@ -174,7 +174,7 @@ class Log {
             . "Result Msg: " . Log::$_strLastLogMessage . "\n";
 
         if ( self::$_nErrors ) {
-            $arrErr = Log::filter( 'es' ); // errors and system_errors
+            $arrErr = Log::filter( 'es' ); // errors and system errors
             $strErr = implode( "\n", Log::toLogLines( $arrErr ) );
         } else {
             $strErr = '';
