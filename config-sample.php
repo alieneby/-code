@@ -15,6 +15,12 @@ class Config {
     static $_fDebug = true;
 
     /**
+     * (Optional) Where to store the debugging data.
+     * @var string $_strDebugLog
+     */
+    static $_strDebugLog = 'logs/debug.log';
+
+    /**
      * (Optional) print system errors into the output stream
      * @see Log::systemError()
      * @var boolean $_fSytemErrorDirectOutput
