@@ -213,7 +213,7 @@ class DbCodeGenerator {
         }
 
         if ( strpos( $t, "enum" ) !== false ) {
-            $str = Utils::strStringBetween( $codeGenColumn->_strType, "'", "'" );
+            $str = Alien::strStringBetween( $codeGenColumn->_strType, "'", "'" );
             return array( "'$str'", "'$str'" );
 
         }
@@ -842,6 +842,7 @@ class DbCodeGenerator {
         if ( $strPrefix && strpos( strtolower( $strMySqlName ), strtolower( $strPrefix ) ) === 0 ) {
             $strMySqlName = substr( $strMySqlName, strlen( $strPrefix ) );
         }
+        $strMySqlName = preg_replace('/[^a-zA-Z0-9]/', '_', trim( $strMySqlName ) );
         $arrParts = explode( '_', $strMySqlName );
         $strReturn = '';
 

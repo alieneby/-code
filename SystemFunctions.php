@@ -20,4 +20,6 @@ class SystemFunctions {
         } 
         return array( $strMethod, $strLine, $strFile );
     }
+    
+    
 }

@@ -77,7 +77,11 @@ class Log {
 
     /**
      * Generate log strings.
-     * @param array log values. See Log::add()
+     * EG.
+     *      Log::toLogLines();
+     * or eg. only errors and system errors:
+     *      Log::toLogLines( Log::filter('es') );
+     * @param $arr array    (Optional) Same format as Log::$_arr. You can use Log::filter( "e" ).
      * @return array of strings - the log lings
      */
     public static function toLogLines( $arr = null ) {
@@ -95,19 +99,21 @@ class Log {
     }
 
     /**
+     * @param $arr array    (Optional) Same format as Log::$_arr. You can use Log::filter( "es" ) to get error array
      * @return string Complete debug log as plain text with "\n" return charaters
      */
-    public static function toString() {
-        return implode( "\n", Log::toLogLines() ) . "\n";
+    public static function toString( $arr = null ) {
+        return implode( "\n", Log::toLogLines( $arr ) ) . "\n";
     }
 
     /**
      * Return an unsorted list <ul><li>...</li></ul>
+     * @param $arr array    (Optional) Same format as Log::$_arr. You can use Log::filter( "es" ) to get error array
      * @return string Complete debug log as html with "<br />\n"
      */
-    public static function toHtml() {
+    public static function toHtml( $arr = null ) {
         $strReturn = "<ul>\n";
-        foreach ( Log::toLogLines() as $str ) {
+        foreach ( Log::toLogLines( $arr ) as $str ) {
             $strReturn .= '<li>' . htmlentities( $str ) . "</li>\n";
         }
         return $strReturn . "</ul>\n";
