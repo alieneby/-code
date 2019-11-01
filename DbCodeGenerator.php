@@ -1,7 +1,7 @@
 <?php
 
-require_once( Config::$_strAlien . '/Alien.php' );
-require_once( Config::$_strAlien . '/DbGenUtils.php' );
+require_once( 'Alien.php' );
+require_once( 'DbGenUtils.php' );
 
 class CodeGenColumn {
 
@@ -331,6 +331,7 @@ class DbCodeGenerator {
         $this->code[] = '<?php';
         //$this->code[] = "include_once 'DbGen.php';";
         $this->code[] = '/**';
+        $this->code[] = ' * DO NOT CHANGE THIS FILE MANUALY!!!!!!!!!!!!';
         $this->code[] = ' * Created on ' . date( 'd.m.Y' );
         $this->code[] = ' * $Id$';
         $this->code[] = ' */';
@@ -345,7 +346,7 @@ class DbCodeGenerator {
         $this->code[] = '    public static $TABLENAME ="' . $tb->_strNameDB . '";';
         $this->code[] = "    public static \$DBAUTOINCR = '" . $tb->_strAutoIncrCol . "';";
         $this->code[] = '';
-        $this->code[] = '    var $_arrayObjects;';
+        $this->code[] = '    public $_arrayObjects;';
 
         $this->code[] = '    /**';
         $this->code[] = '    * Not used! It is for YOU to add, fill this member.';
@@ -354,7 +355,7 @@ class DbCodeGenerator {
         $this->code[] = '    */';
         $this->code[] = '';
         $this->code[] = '    /* @var $_loadDbObj ' . $tb->_strNamePhp . ' */';
-        $this->code[] = '    var $_loadDbObj;';
+        $this->code[] = '    public $_loadDbObj;';
         //	3rd) private vars
         $codeGenColumn = new CodeGenColumn();
         foreach ( $tb->_arrColumns as $codeGenColumn ) {
