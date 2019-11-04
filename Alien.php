@@ -3,17 +3,16 @@
         echo "Please include Config.php first!";
         exit( 500 );
     }
-    
+
     require_once( Config::$_strAlien . '/SystemFunctions.php' );
     require_once( Config::$_strAlien . '/Log.php' );
-    
+
     if ( ! empty( Config::$_DB_DB ) ) {
         require_once( Config::$_strAlien . '/DbFunctions.php' );
     }
-    
-    class 👽
-    {
-        
+
+    class 👽 {
+
         static function init() {
             if ( ! empty( Config::$_DB_DB ) ) {
                 if ( ! isset( Config::$_DB_CONNECT_AUTOMATICLY ) || Config::$_DB_CONNECT_AUTOMATICLY ) {
@@ -21,23 +20,23 @@
                 }
             }
         }
-        
-        
+
+
         static function 🖖() {
             return call_user_func_array( "👽::exitNow", func_get_args() );
         }
-        
+
         /**
          * @param string $strLastLogMessage
-         * @param int $nHttpErrCode
+         * @param int    $nHttpErrCode
          * @param string $strOutput
          */
         static function exitNow( $strLastLogMessage = '', $nHttpErrCode = 0, $strOutput = "" ) {
             list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
-            $strUri = isset( $_SERVER[ 'REQUEST_URI' ] ) ? $_SERVER[ 'REQUEST_URI' ] : 'shell';
-            
+            $strUri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'shell';
+
             Log::$_strLastLogMessage = $strLastLogMessage;
-            
+
             if ( $nHttpErrCode ) {
                 if ( $nHttpErrCode >= 200 && $nHttpErrCode < 300 ) {
                     header( "HTTP/1.0 $nHttpErrCode" );
@@ -46,21 +45,66 @@
                     header( "HTTP/1.0 $nHttpErrCode $strLastLogMessage" );
                 }
             }
-            
+
             if ( $strOutput ) echo $strOutput;
-            
+
             if ( ! empty( Config::$_strDebugLog ) ) {
                 Log::toLogFile();
             }
-            
+
             if ( ! empty( Config::$_DB_DEBUG_TABLE ) ) {
                 Log::toDatabase();
             }
-            
+
             exit();
         }
-        
-        
+
+        /**
+         * All php errors and warnings will be logged.
+         */
+        static function initErrorHandler() {
+            error_reporting( E_ALL );
+            set_error_handler( "👽::theErrorHandler" );
+        }
+
+        /**
+         * Do not call this function directly!
+         * @see self::initErrorHandler()
+         */
+        static function theErrorHandler( $errno, $errstr, $errfile, $errline ) {
+
+            switch ( $errno ) {
+                case E_USER_ERROR:
+                    Log::error( "E_USER_ERROR: $errstr", $errfile, $errline );
+                    break;
+
+                case E_USER_WARNING:
+                    Log::error( "E_USER_WARNING: $errstr", $errfile, $errline );
+                    break;
+
+                case E_WARNING:
+                    Log::error( "E_WARNING: $errstr", $errfile, $errline );
+                    if ( strpos( $errstr, 'include' ) === 0 ) {
+                        if ( ! Config::$IS_PRODUCTION_SYSTEM ) {
+                            echo __LINE__ . "(E_WARNING $errfile [$errline]: #$errno $errstr)<br>\n";
+                        } else {
+                            echo __LINE__ . "(E_WARNING $errfile [$errline]: #$errno $errstr)<br>\n";
+                        }
+                    }
+                    break;
+
+                case E_USER_NOTICE:
+                case E_NOTICE:
+                    break;
+
+                default:
+                    Log::error( "default: $errstr", $errfile, $errline );
+                    //print_r($ctx) ;
+                    break;
+            }
+            return true;
+        }
+
         static function strStringBetween( $strAll, $strSub1, $strSub2, $nStartSrchPos = 0 ) {
             if ( ! $strSub1 || ! $strSub2 || ! $strAll ) return '';
             $nLen = strlen( $strSub1 );
@@ -68,7 +112,7 @@
             $nPos2 = ( $nPos1 === false ) ? false : strpos( $strAll, $strSub2, ( $nPos1 + $nLen ) );
             return $nPos2 ? substr( $strAll, $nPos1 + $nLen, $nPos2 - $nPos1 - $nLen ) : '';
         }
-        
+
         static function strReplaceBetween( $strAll, $strSub1, $strSub2, $strNew, $nStartSrchPos = 0 ) {
             if ( ! $strSub1 || ! $strSub2 || ! $strAll ) return $strAll;
             $nLen = strlen( $strSub1 );
@@ -76,10 +120,10 @@
             $nPos2 = ( $nPos1 === false ) ? false : strpos( $strAll, $strSub2, ( $nPos1 + $nLen ) );
             return $nPos2 ? substr( $strAll, 0, $nPos1 + $nLen ) . $strNew . substr( $strAll, $nPos2 ) : $strAll;
         }
-        
+
         /**
-         * @param int $nType 1:= Y-m-d, 2:= timestamp, 3:= Y-m-d H:i:s, 4:= array(Y,m,d,H,i,s), 5:=DD.MM.YYYY, 6:=MM/DD/YYYY, 7:=5|6DepOnOLanguageCd,8=ISO
-         * @param String $strD YYYYMMDD or YYYYMMDDHHMMSS or YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
+         * @param int    $nType 1:= Y-m-d, 2:= timestamp, 3:= Y-m-d H:i:s, 4:= array(Y,m,d,H,i,s), 5:=DD.MM.YYYY, 6:=MM/DD/YYYY, 7:=5|6DepOnOLanguageCd,8=ISO
+         * @param String $strD  YYYYMMDD or YYYYMMDDHHMMSS or YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
          * @return String        20080730104027
          */
         static function strDateTo( $nType, $strD ) {
@@ -106,35 +150,35 @@
             if ( $nType == 5 ) return substr( $strD, 6, 2 ) . '.' . substr( $strD, 4, 2 ) . "." . substr( $strD, 0, 4 );
             if ( $nType == 6 ) return substr( $strD, 4, 2 ) . '/' . substr( $strD, 6, 2 ) . "/" . substr( $strD, 0, 4 );
         }
-        
+
         static function strEndsWith( $strBig, $parts ) {
             $strBig = strtolower( $strBig );
             if ( is_array( $parts ) ) {
                 foreach ( $parts as $str ) if ( self::strEndsWith( $strBig, $str ) ) return true;
-            } elseif ( ( $parts && is_string( $parts ) ) || is_numeric( $parts ) ) {
+            } else if ( ( $parts && is_string( $parts ) ) || is_numeric( $parts ) ) {
                 $l = strlen( $strBig );
                 $l2 = strlen( $parts );
                 return $l2 < $l && substr( $strBig, -1 * $l2 ) == strtolower( $parts );
             }
             return false;
         }
-        
+
         static function strStartsWith( $strBig, $parts ) {
             $strBig = strtolower( $strBig );
             if ( is_array( $parts ) ) {
                 foreach ( $parts as $str ) if ( self::strStartsWith( $strBig, $str ) ) return true;
-            } elseif ( ( $parts && is_string( $parts ) ) || is_numeric( $parts ) ) {
+            } else if ( ( $parts && is_string( $parts ) ) || is_numeric( $parts ) ) {
                 return strtolower( $parts ) == substr( $strBig, 0, strlen( $parts ) );
             }
             return false;
         }
-        
+
         static function arraysTrimValues( $arr ) {
             if ( is_array( $arr ) ) foreach ( $arr as $k => $v ) $arr[ $k ] = trim( $v );
             return $arr;
         }
     }
-    
+
     👽::init();
     class_alias( '👽', 'Alien' );
 
