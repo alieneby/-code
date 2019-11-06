@@ -269,7 +269,7 @@ class DbCodeGenerator {
             $t = self::getType( $codeGenColumn->_strType );
             if ( strpos( $t, "int" ) !== false || $t == "decimal" || $t == "float" || $t == "real" || $t == "double" ) {
                 $codeGenColumn->_nDoEscape = 0;
-                $codeGenColumn->_nIsNumeric = 0;
+                $codeGenColumn->_nIsNumeric = 1;
             }
 
             if ( $row['Extra'] == 'auto_increment' ) {
@@ -377,9 +377,12 @@ class DbCodeGenerator {
             } else {
                 $this->code[] = "    * @var string  \t" . $codeGenColumn->_strType . " \t" . $codeGenColumn->_strNameDB;
             }
-            $this->code[] = '    * @access public';
             $this->code[] = '    */';
-            $this->code[] = '    public $_' . $codeGenColumn->_strNamePhp . ';';
+            if ( $codeGenColumn->_nIsNumeric ) {
+                $this->code[] = '    public $_' . $codeGenColumn->_strNamePhp . ' = 0;';
+            } else {
+                $this->code[] = '    public $_' . $codeGenColumn->_strNamePhp . " = '';";
+            }
             $this->code[] = '    static $_' . strtoupper( $codeGenColumn->_strNamePhp ) . '_DEFAULT = ' . $codeGenColumn->_strDefaultPhp . ';';
             if ( count( $codeGenColumn->_arrAllowedValues ) ) {
                 $s = "";
