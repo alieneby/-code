@@ -380,7 +380,7 @@ class DbCodeGenerator {
             $this->code[] = '    * @access public';
             $this->code[] = '    */';
             $this->code[] = '    public $_' . $codeGenColumn->_strNamePhp . ';';
-            $this->code[] = '    static $_' . strtoupper( $codeGenColumn->_strNamePhp ) . '_DEFAULT=' . $codeGenColumn->_strDefaultPhp . ';';
+            $this->code[] = '    static $_' . strtoupper( $codeGenColumn->_strNamePhp ) . '_DEFAULT = ' . $codeGenColumn->_strDefaultPhp . ';';
             if ( count( $codeGenColumn->_arrAllowedValues ) ) {
                 $s = "";
                 foreach ( $codeGenColumn->_arrAllowedValues as $value ) {
@@ -388,7 +388,7 @@ class DbCodeGenerator {
                     $s .= "\"$value\"";
                     $this->code[] = '    static $_' . strtoupper( $codeGenColumn->_strNamePhp . "_" . DbGenUtils::onlyAlphaNumeric( $value ) ) . "= '$value';";
                 }
-                $this->code[] = '    static $_' . $codeGenColumn->_strNamePhp . '_values= array(' . $s . ');';
+                $this->code[] = '    static $_' . $codeGenColumn->_strNamePhp . '_values = array(' . $s . ');';
             }
 
             $this->code[] = '';
@@ -405,16 +405,18 @@ class DbCodeGenerator {
             $sConstructorExample2 .= ( $sConstructorExample2 ? ', ' : '' ) . '"_' . $codeGenColumn->_strNamePhp . '" => "val"';
             $sConstructorExample3 .= ( $sConstructorExample2 ? ', ' : '' ) . '"' . $codeGenColumn->_strNameDB . '" => "val"';
         }
-        $this->code[] = "    static \$_MAPPING = array($s);";
+        $this->code[] = "    static \$_MAPPING = array( $s );";
         $this->code[] = '';
 
         //	clear
         $this->code[] = '    /**';
-        $this->code[] = '    * unset every object member variable';
+        $this->code[] = '    * Set defaults';
         $this->code[] = '    */';
         $this->code[] = '    function clear() {';
-        $this->code[] = '        $this->_arrayObjects=array(); unset( $this->_loadDbObj );';
-        $this->code[] = '        foreach (self::$_MAPPING as $strMember) unset ($this->$strMember);';
+        $this->code[] = '        $emptyObj = new '.$tb->_strNamePhp.'();';
+        $this->code[] = '        $this->_arrayObjects = array(); ';
+        $this->code[] = '        unset( $this->_loadDbObj );';
+        $this->code[] = '        foreach ( self::$_MAPPING as $strMember ) $this->$strMember = $emptyObj->$strMember;';
         $this->code[] = '    }';
         $this->code[] = '';
 
@@ -466,17 +468,17 @@ class DbCodeGenerator {
 
         // generate column names as String, eg: col1,col2,col3
         $this->code[] = '    /**';
-        $this->code[] = '    * all database columns. Usefull in select part of a sql query.';
+        $this->code[] = '    * All database columns. Usefull in select part of a sql query. It adds the tablename to every column name.';
         $this->code[] = '    * e.g. select     t1.col1, t1.col2, t3.col3     from table t1 ';
-        $this->code[] = '    * @param string $strTablename  Name or shortname of table (optional)';
-        $this->code[] = '    * @param string $arrDBCols     Name or shortname of table (optional)';
+        $this->code[] = '    * @param $strTablename string      (optional) Name or shortname of table (optional)';
+        $this->code[] = '    * @param $arrDBCols    array       (optional) Columnnames';
         $this->code[] = '    * @return string               All database columns listed in one string (comma + space seperated)';
         $this->code[] = '	 */';
-        $this->code[] = '    static function dbColNames($strTablename="", $arrDBCols="") {';
-        $this->code[] = '        if (!is_array($arrDBCols)) $arrDBCols=array_keys(self::$_MAPPING);';
+        $this->code[] = '    static function dbColNames( $strTablename = "", $arrDBCols = "") {';
+        $this->code[] = '        if ( ! is_array( $arrDBCols ) ) $arrDBCols = array_keys( self::$_MAPPING );';
         $this->code[] = '        $strReturn = "";';
-        $this->code[] = '        foreach($arrDBCols as $strCol) {';
-        $this->code[] = '            $strReturn .= ($strReturn?",":"") .($strTablename? "`$strTablename`.`$strCol` \'$strTablename.$strCol\'": "`$strCol`");';
+        $this->code[] = '        foreach( $arrDBCols as $strCol ) {';
+        $this->code[] = '            $strReturn .= ( $strReturn ? "," : "" ) . ( $strTablename ? "`$strTablename`.`$strCol` \'$strTablename.$strCol\'" : "`$strCol`" );';
         $this->code[] = '        }';
         $this->code[] = '        return $strReturn;';
         $this->code[] = '    }';
@@ -492,15 +494,21 @@ class DbCodeGenerator {
 
         // generate set part as String, eg: col1,col2,col3
         $this->code[] = '    /**';
-        $this->code[] = '    * @param boolean $fOnlySet  List of database column names (comma separated)';
+        $this->code[] = '    * Build a string with col1=value1, col2=value2,...';
         $this->code[] = '    * @return string    "set" part of an update sql query. Eg: dbColumn1=object.member1, dbColumn2=object.member2, ...';
         $this->code[] = '    */';
-        $this->code[] = '    function dbSetCols($fOnlySet=false) {';
-        $this->code[] = '        $s=""; $fOnlyModified = isset($this->_loadDbObj);';
-        $this->code[] = '        foreach (self::$_MAPPING as $strDbCol => $strMember) {';
-        $this->code[] = '           if (   (!$fOnlyModified && (!$fOnlySet || isset($this->$strMember)))';
-        $this->code[] = '               || ( $fOnlyModified && $this->$strMember!==$this->_loadDbObj->$strMember)) {';
-        $this->code[] = '               $s.=($s?\', \':\'\')."`$strDbCol`=\'".dbEscStr($this->$strMember)."\'";';
+        $this->code[] = '    function dbSetCols() {';
+        $this->code[] = '        $s = "";';
+        $this->code[] = '        $fOnlyModified = isset( $this->_loadDbObj );';
+        $this->code[] = '        foreach ( self::$_MAPPING as $strDbCol => $strMember ) {';
+        $this->code[] = '           if ( $fOnlyModified && $this->$strMember !== $this->_loadDbObj->$strMember  )  {';
+        $this->code[] = '               $s .= ( $s ? \', \' : \'\' ) . "`$strDbCol`=\'" . dbEscStr( $this->$strMember ) . "\'";';
+        $this->code[] = '           } elseif ( ! $fOnlyModified ) {';
+        $this->code[] = '               if ( isset( $this->$strMember ) ) {';
+        $this->code[] = '                   $s .= ( $s ? \', \' : \'\' ) . "`$strDbCol`=\'" . dbEscStr( $this->$strMember ) . "\'";';
+        $this->code[] = '               } else {';
+        $this->code[] = '                   $s .= ( $s ? \', \' : \'\' ) . "`$strDbCol`=\'\'";';
+        $this->code[] = '               } ';
         $this->code[] = '           }';
         $this->code[] = '        }';
         $this->code[] = '        return $s;';
@@ -512,10 +520,10 @@ class DbCodeGenerator {
         $this->code[] = '    /**';
         $this->code[] = '    * Read all member variables from $_REQUEST';
         $this->code[] = '    * Format of variable: <classname>-<membername> ALL IN LOWERCASE!!!!!';
-        $this->code[] = '    * @param string $strSuffix Append this string to the key-variablename (usefull in loops, to add many obj to an array)';
+        $this->code[] = '    * @param $strSuffix string Append this string to the key-variablename (usefull in loops, to add many obj to an array)';
         $this->code[] = '    */';
-        $this->code[] = '    function readRequest($strSuffix="") {';
-        $this->code[] = '        $this->fromArray($strSuffix, $_REQUEST);';
+        $this->code[] = '    function readRequest( $strSuffix = "" ) {';
+        $this->code[] = '        $this->fromArray( $strSuffix, $_REQUEST );';
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
@@ -524,15 +532,15 @@ class DbCodeGenerator {
         $this->code[] = '    /**';
         $this->code[] = '    * Put all object members into the array';
         $this->code[] = '    * Format of key-variable: <lowercase classname><suffix>-<membername>';
-        $this->code[] = '    * @param string $strSuffix     Append this string to the key-variablename (useful in loops, to add many obj to an array)';
-        $this->code[] = '    * @param array $arr            Array. Add object members into this array.';
+        $this->code[] = '    * @param $strSuffix string    Append this string to the key-variablename (useful in loops, to add many obj to an array)';
+        $this->code[] = '    * @param $arr       array     Add object members into this array.';
         $this->code[] = '    * @return array';
         $this->code[] = '    */';
-        $this->code[] = '    function toArray($strSuffix="", &$arr=array()) {';
-        $this->code[] = '        $s = strtolower(__CLASS__).$strSuffix.\'-\';';
-        $this->code[] = '        foreach (self::$_MAPPING as $strMember) {';
-        $this->code[] = '            if (isset($this->$strMember)) $arr[$s.substr($strMember,1)] = $this->$strMember;';
-        $this->code[] = '            else unset($arr[$s.substr($strMember,1)]);';
+        $this->code[] = '    function toArray( $strSuffix = "", &$arr = array() ) {';
+        $this->code[] = '        $s = strtolower( __CLASS__ ) . $strSuffix . \'-\';';
+        $this->code[] = '        foreach ( self::$_MAPPING as $strMember ) {';
+        $this->code[] = '            if ( isset( $this->$strMember ) ) $arr[ $s.substr( $strMember, 1 ) ] = $this->$strMember;';
+        $this->code[] = '            else unset( $arr[ $s . substr( $strMember, 1 ) ] );';
         $this->code[] = '        }';
         $this->code[] = '        return $arr;';
         $this->code[] = '    }';
@@ -547,12 +555,12 @@ class DbCodeGenerator {
         $this->code[] = '    * @param string $strSuffix     Append this string to the key-variablename (usefull in loops, to add many obj to an array)';
         $this->code[] = '    * @param array $arr            Object members will be filled from that array.';
         $this->code[] = '    */';
-        $this->code[] = '    function fromArray($strSuffix="", &$arr) {';
-        $this->code[] = '        if (!$arr || !is_array($arr)) { $this->clear(); return; }';
-        $this->code[] = '        $s = strtolower(__CLASS__).$strSuffix.\'-\';';
-        $this->code[] = '        foreach (self::$_MAPPING as $strMember) {';
-        $this->code[] = '            $str = $s.substr($strMember,1);';
-        $this->code[] = '            if (isset($arr[$str])) $this->$strMember = $arr[$str]; else unset($this->$strMember);';
+        $this->code[] = '    function fromArray( $strSuffix="", &$arr ) {';
+        $this->code[] = '        if ( ! $arr || ! is_array( $arr ) ) { $this->clear(); return; }';
+        $this->code[] = '        $s = strtolower( __CLASS__ ) . $strSuffix . \'-\';';
+        $this->code[] = '        foreach ( self::$_MAPPING as $strMember ) {';
+        $this->code[] = '            $str = $s . substr( $strMember, 1 );';
+        $this->code[] = '            if ( isset( $arr[ $str ] ) ) $this->$strMember = $arr[ $str ]; else $this->$strMember = "";';
         $this->code[] = '        }';
         $this->code[] = '    }';
         $this->code[] = '';
@@ -561,14 +569,16 @@ class DbCodeGenerator {
 
         // generate set part as String, eg: col1,col2,col3
         $this->code[] = '    /**';
-        $this->code[] = '    * Read all object members from $row. $row should be a return value of mysqli_fetch_assoc();';
+        $this->code[] = '    * Read all object members from $row.';
+        $this->code[] = '    * @param $row           array     Row should be a return value of mysqli_fetch_assoc();';
+        $this->code[] = '    * @param $strColPrefix  string    (Optional)';
         $this->code[] = '    */';
-        $this->code[] = '    function fromDBRow(&$row, $strColPrefix="") {';
-        $this->code[] = '        if (!$row || !is_array($row)) { $this->clear(); return; }';
-        $this->code[] = '        if ($strColPrefix) $strColPrefix.=".";';
-        $this->code[] = '        foreach (self::$_MAPPING as $strDbCol=>$strMember) {';
-        $this->code[] = '            if (isset($row[$strColPrefix.$strDbCol])) $this->$strMember = $row[$strColPrefix.$strDbCol];';
-        $this->code[] = '            else unset($this->$strMember);';
+        $this->code[] = '    function fromDBRow( &$row, $strColPrefix = "") {';
+        $this->code[] = '        if ( ! $row || ! is_array( $row ) ) { $this->clear(); return; }';
+        $this->code[] = '        if ( $strColPrefix ) $strColPrefix .= ".";';
+        $this->code[] = '        foreach ( self::$_MAPPING as $strDbCol => $strMember ) {';
+        $this->code[] = '            if ( isset( $row[ $strColPrefix . $strDbCol ] ) ) $this->$strMember = $row[ $strColPrefix . $strDbCol ];';
+        $this->code[] = '            else $this->$strMember = "";';
         $this->code[] = '        }';
         $this->code[] = '    }';
         $this->code[] = '';
@@ -578,34 +588,33 @@ class DbCodeGenerator {
         $this->code[] = '    * Read all object members from $row. $row should be a return value of mysqli_fetch_assoc();';
         $this->code[] = '    * @param string $strWhere';
         $this->code[] = '    * @param boolean $fCopy';
-        $this->code[] = '    * @param string $strSelectColumns';
         $this->code[] = '    * @return ' . $tb->_strNamePhp;
         $this->code[] = '    */';
-        $this->code[] = '    static function dbLoadSingle($strWhere, $fCopy=false, $strSelectColumns="") {';
+        $this->code[] = '    static function dbLoadSingle( $strWhere, $fCopy = false ) {';
         $this->code[] = '        $obj = new ' . $tb->_strNamePhp . '();';
-        $this->code[] = '        $obj->dbLoad($strWhere, $fCopy, $strSelectColumns);';
+        $this->code[] = '        $obj->dbLoad( $strWhere, $fCopy );';
         $this->code[] = '        return $obj;';
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '    /**';
         $this->code[] = '    * Make a copy of object and store it in this->_loadDbObj. Needed to identify value changes.';
         $this->code[] = '    */';
-        $this->code[] = '    function setLoadDbObj() { $this->_loadDbObj = unserialize(serialize($this)); }';
+        $this->code[] = '    function setLoadDbObj() { $this->_loadDbObj = unserialize( serialize( $this ) ); }';
         $this->code[] = '';
         $this->code[] = '    /**';
         $this->code[] = '    * Are members modified since setLoadDbObj() / dbLoadSingle()?';
         $this->code[] = '    * @return boolean';
         $this->code[] = '    */';
         $this->code[] = '    function isModified() {';
-        $this->code[] = '        return $this->_loadDbObj? $this->toString() != $this->_loadDbObj->toString(): true;';
+        $this->code[] = '        return isset( $this->_loadDbObj ) ? $this->toString() !== $this->_loadDbObj->toString() : true;';
         $this->code[] = '    }';
         $this->code[] = '';
-        $this->code[] = '    function dbLoad($strWhere, $fCopy=false) {';
-        $this->code[] = '        $this->clear();';
-        $this->code[] = '        $arrDummy=dbQueryOne(' . $tb->_strNamePhp . '::selectSQL($strWhere));';
-        $this->code[] = '        $this->fromDBRow($arrDummy);';
-        $this->code[] = '        if ($fCopy) $this->setLoadDbObj();';
-        $this->code[] = '        return count($arrDummy)>0;';
+        $this->code[] = '    function dbLoad( $strWhere, $fCopy = false ) {';
+        $this->code[] = '        $this->_arrayObjects = array(); ';
+        $this->code[] = '        $arrDummy = dbQueryOne( ' . $tb->_strNamePhp . '::selectSQL( $strWhere ) );';
+        $this->code[] = '        $this->fromDBRow( $arrDummy );';
+        $this->code[] = '        if ( $fCopy ) $this->setLoadDbObj(); else  unset( $this->_loadDbObj );';
+        $this->code[] = '        return count( $arrDummy ) > 0;';
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '    /**';
@@ -651,37 +660,37 @@ class DbCodeGenerator {
         $this->code[] = '';
 
         if ( $strEmptyCheck ) {
-            $this->code[] = '    function checkEmpty($arrMembers, $arrErr) {';
-            $this->code[] = '        foreach ($arrMembers as $strMember) {';
-            $this->code[] = '            if (!isset($this->$strMember) || \'\'.$this->$strMember==\'\') $arrErr["' . $tb->_strNamePhp . '-".substr($strMember,1)]="must have a value";';
+            $this->code[] = '    function checkEmpty( $arrMembers, $arrErr ) {';
+            $this->code[] = '        foreach ( $arrMembers as $strMember ) {';
+            $this->code[] = '            if ( ! isset( $this->$strMember ) || \'\' . $this->$strMember == \'\' ) $arrErr[ "' . $tb->_strNamePhp . '-" . substr( $strMember, 1 ) ] = "must have a value";';
             $this->code[] = '        }';
             $this->code[] = '    }';
         }
         if ( $strNumberCheck ) {
-            $this->code[] = '    function checkNumber($arrMembers, $arrErr) {';
-            $this->code[] = '        foreach ($arrMembers as $strMember) {';
-            $this->code[] = '            if (!DbGenUtils::isNumber($this->$strMember)) $arrErr["' . $tb->_strNamePhp . '-".substr($strMember,1)]="NO NUMBER";';
+            $this->code[] = '    function checkNumber( $arrMembers, $arrErr ) {';
+            $this->code[] = '        foreach ( $arrMembers as $strMember ) {';
+            $this->code[] = '            if ( ! DbGenUtils::isNumber( $this->$strMember ) ) $arrErr[ "' . $tb->_strNamePhp . '-" . substr( $strMember, 1 ) ] = "NO NUMBER";';
             $this->code[] = '        }';
             $this->code[] = '    }';
         }
         if ( $strToBigCheck ) {
-            $this->code[] = '    function checkToBig($arrMembers, $arrErr) {';
-            $this->code[] = '        foreach ($arrMembers as $strMember=>$nLen) {';
-            $this->code[] = '          if (isset($this->$strMember) && strlen(""+$this->$strMember)>$nLen) $arrErr["' . $tb->_strNamePhp . '-".substr($strMember,1)]="TO BIG";';
+            $this->code[] = '    function checkToBig( $arrMembers, $arrErr ) {';
+            $this->code[] = '        foreach ( $arrMembers as $strMember => $nLen ) {';
+            $this->code[] = '          if ( isset( $this->$strMember ) && strlen( "" . $this->$strMember ) > $nLen ) $arrErr["' . $tb->_strNamePhp . '-" . substr( $strMember, 1 ) ] = "TO BIG";';
             $this->code[] = '        }';
             $this->code[] = '    }';
         }
         if ( $strEnumCheck ) {
-            $this->code[] = '    function checkEnum($arrMembers, $arrErr) {';
-            $this->code[] = '        foreach ($arrMembers as $strMember => $arrValues) {';
-            $this->code[] = '            if (isset($this->$strMember) && $this->$strMember && !in_array($this->$strMember, $arrValues)) $arrErr["' . $tb->_strNamePhp . '-".substr($strMember,1)]="BAD VALUE";';
+            $this->code[] = '    function checkEnum( $arrMembers, $arrErr ) {';
+            $this->code[] = '        foreach ( $arrMembers as $strMember => $arrValues ) {';
+            $this->code[] = '            if ( isset( $this->$strMember ) && $this->$strMember && ! in_array( $this->$strMember, $arrValues ) ) $arrErr[ "' . $tb->_strNamePhp . '-" . substr( $strMember, 1 ) ] = "BAD VALUE";';
             $this->code[] = '        }';
             $this->code[] = '    }';
         }
         $this->code[] = '';
 
         $this->code[] = '    /**';
-        $this->code[] = '    * @return SQL Query for an insert command';
+        $this->code[] = '    * @return string SQL Query for an insert command';
         $this->code[] = '    */';
         $this->code[] = '    function insertSQL() {';
         if ( $tb->_strAutoIncrCol ) {
@@ -719,11 +728,10 @@ class DbCodeGenerator {
         $this->code[] = '';
 
         $this->code[] = '    /**';
-        $this->code[] = '    * @param String $strWhere      Where part without "where", eg "col=123" ';
-        $this->code[] = '    * @param boolean $fOnlySet     false: update all (default), true: update only these which have values (!unset)';
-        $this->code[] = '    * @return SQL Query for an update command';
+        $this->code[] = '    * @param $strWhere string    Where part without "where", eg "col=123" ';
+        $this->code[] = '    * @return string SQL Query for an update command';
         $this->code[] = '    */';
-        $this->code[] = '    function updateSQL($strWhere="", $fOnlySet=false) {';
+        $this->code[] = '    function updateSQL( $strWhere = "" ) {';
         $s2 = $w = $strSinglePrimKey = $strSinglePrimKey2 = "";
         foreach ( $tb->_arrColumns as $codeGenColumn ) {
             if ( $codeGenColumn->_strKey == "PRI" ) {
@@ -731,27 +739,27 @@ class DbCodeGenerator {
                     $w .= " and ";
                     $strSinglePrimKey = '';
                 } else $strSinglePrimKey = "`" . ( $strSinglePrimKey2 = $codeGenColumn->_strNameDB ) . "`";
-                $w .= "`" . $codeGenColumn->_strNameDB . "`='\" .dbEscStr(\$this->_" . $codeGenColumn->_strNamePhp . ").\"'";
+                $w .= "`" . $codeGenColumn->_strNameDB . "`='\" . dbEscStr( \$this->_" . $codeGenColumn->_strNamePhp . " ) .\"'";
             }
         }
-        $this->code[] = '        if (!$strWhere) $strWhere="' . $w . '";';
-        $this->code[] = "        return \"update `" . $tb->_strNameDB . "` set \" .\$this->dbSetCols(\$fOnlySet).' where '.\$strWhere;";
+        $this->code[] = '        if ( ! $strWhere ) $strWhere = "' . $w . '";';
+        $this->code[] = "        return \"update `" . $tb->_strNameDB . "` set \" . \$this->dbSetCols() . ' where '.\$strWhere;";
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
-        $this->code[] = '    static function dbLoadMany($strWhere, $fCopy=false, $strSelectColumns="") {';
-        $this->code[] = '        if (stripos($strWhere, "limit ")===false) $strWhere .= " limit 0, 500";';
+        $this->code[] = '    static function dbLoadMany( $strWhere, $fCopy = false, $strSelectColumns = "" ) {';
+        $this->code[] = '        if ( stripos( $strWhere, "limit " ) === false ) $strWhere .= " limit 0, 500";';
         $this->code[] = '        $arr = array();';
-        $this->code[] = '        $result = dbQuery(' . $tb->_strNamePhp . '::selectSQL($strWhere, $strSelectColumns));';
-        $this->code[] = '        if ($result) {';
-        $this->code[] = '           while ($row=mysqli_fetch_assoc($result)) {';
+        $this->code[] = '        $result = dbQuery( ' . $tb->_strNamePhp . '::selectSQL( $strWhere, $strSelectColumns ) );';
+        $this->code[] = '        if ( $result ) {';
+        $this->code[] = '           while ( $row = mysqli_fetch_assoc( $result ) ) {';
         $this->code[] = '               $o = new ' . $tb->_strNamePhp . '();';
-        $this->code[] = '               $o->fromDBRow($row);';
-        $this->code[] = '               if ($fCopy) $o->setLoadDbObj();';
-        if ( $strSinglePrimKey ) $this->code[] = "               \$arr[''.\$row['$strSinglePrimKey2']] = \$o;";
+        $this->code[] = '               $o->fromDBRow( $row );';
+        $this->code[] = '               if ( $fCopy ) $o->setLoadDbObj();';
+        if ( $strSinglePrimKey ) $this->code[] = "               \$arr[ '' . \$row[ '$strSinglePrimKey2' ] ] = \$o;";
         else                     $this->code[] = "               \$arr[] = \$o;";
         $this->code[] = '           } ';
-        $this->code[] = '           dbFreeResult($result);';
+        $this->code[] = '           dbFreeResult( $result );';
         $this->code[] = '        };';
         $this->code[] = '        return $arr;';
         $this->code[] = '    }';
@@ -763,9 +771,9 @@ class DbCodeGenerator {
         $this->code[] = '    * @param string $strSelect Select database columns,eg "id, col3" ';
         $this->code[] = '    * @return string   SQL Query for a select command with all columns';
         $this->code[] = '    */';
-        $this->code[] = '    static function selectSQL($strWhere, $strSelect="") {';
-        if ( $strSinglePrimKey ) $this->code[] = '        if (((string)((int) $strWhere)) == ((string) $strWhere)) $strWhere="' . $strSinglePrimKey . '=".(0+$strWhere);';
-        $this->code[] = "        return \"select \" . ( \$strSelect ? \$strSelect : self::dbColNames() ) . \" from `" . $tb->_strNameDB . "`\".(\$strWhere?' where ':'') .\$strWhere;";
+        $this->code[] = '    static function selectSQL( $strWhere, $strSelect = "" ) {';
+        if ( $strSinglePrimKey ) $this->code[] = '        if ( ( (string) ( (int) $strWhere ) ) == ( (string) $strWhere ) ) $strWhere = "' . $strSinglePrimKey . '=" . intval( $strWhere );';
+        $this->code[] = "        return \"select \" . ( \$strSelect ? \$strSelect : self::dbColNames() ) . \" from `" . $tb->_strNameDB . "`\" . ( \$strWhere ? ' where ' : '' ) . \$strWhere;";
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
@@ -773,18 +781,18 @@ class DbCodeGenerator {
         $this->code[] = '    * @param string $strWhere  Where part without "where", eg "col=123" ';
         $this->code[] = '    * @return string   SQL Query for a delete command';
         $this->code[] = '    */';
-        $this->code[] = "    function deleteSQL(\$strWhere='') {";
-        $this->code[] = '        if (!$strWhere) $strWhere="' . $w . '";';
-        $this->code[] = "        return \"delete from `" . $tb->_strNameDB . "` where \".\$strWhere;";
+        $this->code[] = "    function deleteSQL( \$strWhere = '' ) {";
+        $this->code[] = '        if ( ! $strWhere ) $strWhere = "' . $w . '";';
+        $this->code[] = "        return \"delete from `" . $tb->_strNameDB . "` where \" . \$strWhere;";
         $this->code[] = '    }';
         $this->code[] = '';
         $this->code[] = '';
         $this->code[] = '    /**';
-        $this->code[] = '    * @return all members in one string. Format: [name:value],[name:value],..';
+        $this->code[] = '    * @return string All members in one string. Format: [name:value],[name:value],..';
         $this->code[] = '    */';
         $this->code[] = '    function toString() {';
         $this->code[] = '        $str = "";';
-        $this->code[] = '        foreach (self::$_MAPPING as $strMember) $str .= ($str? ", ":"") . "[$strMember:".(isset($this->$strMember)?$this->$strMember:"")."]";';
+        $this->code[] = '        foreach ( self::$_MAPPING as $strMember ) $str .= ( $str ? ", ":"" ) . "[$strMember:" . ( isset( $this->$strMember ) ? $this->$strMember : "" ) . "]";';
         $this->code[] = '        return $str;';
         $this->code[] = '    }';
         $this->code[] = '';
