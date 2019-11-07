@@ -87,7 +87,7 @@
          * @return array of strings - the log lings
          */
         public static function toLogLines( $arr = null ) {
-            if ( ! $arr ) {
+            if (  $arr === null ) {
                 $arr = self::$_arr;
             }
             $arrReturn = array();
