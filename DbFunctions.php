@@ -58,7 +58,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
      * @param string $strQuery
      * @param bool fDebug    true add sql to debug container, false = do not log sql.
      * @param resource $myLinkId
-     * @return array Result of SQL
+     * @return mixed Result of mysqli_query
      */
     function dbQuery( $strQuery, $fDebug = true, $myLinkId = 0 ) {
         AlienDB::$_DB_LAST_INSERT_ID = AlienDB::$_DB_AFFECTED_ROWS = 0;

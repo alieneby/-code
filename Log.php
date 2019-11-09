@@ -1,11 +1,11 @@
 <?php
     
-    class Log
-    {
+    class Log {
         static $_strScript = 'PHP';
         static $_strStartDate;
         static $_strStartTimestamp;
         static $_strLastLogMessage = '';
+        static $_strFirstErrMsg = '';
         static $_nErrors = 0;
         static $_nSystemErrors = 0;
         static $_nPid;
@@ -18,15 +18,7 @@
             self::$_nPid = ( getmypid() % 1000 );
         }
         
-        /**
-         * @param $strLevel     string  a=always, i=info, e=error, s=systemerror
-         * @param $val          mixed   Message to log (string, array, obj)
-         * @param $strMethod    string  Caller
-         * @param $strLine      string  Caller
-         * @param $strFile      string  Caller
-         */
-        private static function add( $strLevel, $val, $strMethod, $strLine, $strFile ) {
-            $str = ( is_array( $val ) || is_object( $val ) ) ? print_r( $val, true ) : $val;
+        private static function add( $strLevel, $str, $strMethod, $strLine, $strFile ) {
             $strDuration = sprintf( "%.4f", ( microtime( true ) - Log::$_strStartTimestamp ) );
             if ( ! empty( Config::$_fLogDirectOutput ) ) {
                 echo "\n<br />\n$strFile#$strLine $strMethod(): $str\n<br />\n";
@@ -35,50 +27,50 @@
                 'm' => $strMethod, 'n' => $strLine, 't' => $str );
         }
         
-        public static function info( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
+        public static function info( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
             if ( empty( Config::$_fDebug ) ) return;
             if ( ! "$strMethod$strLine$strFile" ) {
                 list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
             }
-            self::add( 'i', $val, $strMethod, $strLine, $strFile );
+            self::add( 'i', $str, $strMethod, $strLine, $strFile );
             return true;
         }
         
-        public static function always( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
+        public static function always( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
             if ( ! "$strMethod$strLine$strFile" ) {
                 list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
             }
-            self::add( 'a', $val, $strMethod, $strLine, $strFile );
+            self::add( 'a', $str, $strMethod, $strLine, $strFile );
             return true;
         }
         
-        public static function error( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
+        public static function error( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
             self::$_nErrors = self::$_nErrors + 1;
             if ( ! "$strMethod$strLine$strFile" ) {
                 list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
             }
-            self::add( 'e', $val, $strMethod, $strLine, $strFile );
+            self::add( 'e', $str, $strMethod, $strLine, $strFile );
+            if ( ! Log::$_strFirstErrMsg ) Log::$_strFirstErrMsg = $str;
             return false;
         }
         
-        public static function systemError( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
+        public static function systemError( $str, $strMethod = '', $strLine = '', $strFile = '' ) {
             self::$_nSystemErrors = self::$_nSystemErrors + 1;
             if ( ! "$strMethod$strLine$strFile" ) {
                 list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
             }
-            $str = ( is_array( $val ) || is_object( $val ) ) ? print_r( $val, true ) : $val;
             error_log( "$strFile#$strLine $strMethod(): " . addslashes( $str ) );
             if ( ! empty( Config::$_fSytemErrorDirectOutput ) ) {
                 echo "\n<br />\n$strFile#$strLine $strMethod(): $str\n<br />\n";
             }
-            self::add( 's', $val, $strMethod, $strLine, $strFile );
+            self::add( 's', $str, $strMethod, $strLine, $strFile );
             return false;
         }
         
         public static function filter( $strLevels ) {
             $arr = array();
             foreach ( self::$_arr as $strK => $arrE ) {
-                if ( stripos( $strLevels, $arrE[ 'l' ] ) !== false ) {
+                if ( stripos( $strLevels, $arrE['l'] ) !== false ) {
                     $arr[ $strK ] = $arrE;
                 }
             }
@@ -95,15 +87,15 @@
          * @return array of strings - the log lings
          */
         public static function toLogLines( $arr = null ) {
-            if ( $arr === null ) {
+            if (  $arr === null ) {
                 $arr = self::$_arr;
             }
             $arrReturn = array();
             foreach ( $arr as $strK => $arrE ) {
-                $arrReturn[] = $arrE[ 'd' ] . ' '
-                    . $arrE[ 'f' ] . '#' . $arrE[ 'n' ] . ' '
-                    . ( $arrE[ 'm' ] ? $arrE[ 'm' ] . '()' : '-' )
-                    . ' ' . self::$arrLN[ $arrE[ 'l' ] ] . ' ' . $arrE[ 't' ];
+                $arrReturn[] = $arrE['d'] . ' '
+                    . $arrE['f'] . '#' . $arrE['n'] . ' '
+                    . ( $arrE['m'] ? $arrE['m'] . '()' : '-' )
+                    . ' ' . self::$arrLN[ $arrE['l'] ] . ' ' . $arrE['t'];
             }
             return $arrReturn;
         }
@@ -130,6 +122,21 @@
         }
         
         /**
+         * Return the errors as an unsorted list <ul><li>...</li></ul>
+         * @return string Error log as html with "<br />\n" or ""
+         */
+        public static function errorsToHtml() {
+            $arr = Log::filter( 'es' ); // error and system-errors
+            if ( ! count( $arr ) ) return '';
+            
+            $strReturn = "<ul>\n";
+            foreach ( Log::toLogLines( $arr ) as $str ) {
+                $strReturn .= '<li>' . htmlentities( $str ) . "</li>\n";
+            }
+            return $strReturn . "</ul>\n";
+        }
+        
+        /**
          * Save log to file
          */
         public static function toLogFile() {
@@ -137,7 +144,7 @@
                 return Log::info( 'Not set Config::$_strDebugLog. So no debug log files' );
             }
             
-            $strUri = isset( $_SERVER[ 'REQUEST_URI' ] ) ? $_SERVER[ 'REQUEST_URI' ] : 'shell';
+            $strUri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'shell';
             $arrErr = Log::filter( 'es' ); // errors and system errors
             
             $str = "\n\n----------------- START " . ' at ' . gmdate( 'Y-m-d H:i:s' ) . " ----------------------\n";
@@ -176,7 +183,7 @@
                 return Log::systemError( 'No database connection. Check Config for DB settings!' );
             }
             
-            $strUri = isset( $_SERVER[ 'REQUEST_URI' ] ) ? $_SERVER[ 'REQUEST_URI' ] : 'shell';
+            $strUri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'shell';
             $strTotalTime = sprintf( "%.4f", ( microtime( true ) - Log::$_strStartTimestamp ) );
             
             $strStats
