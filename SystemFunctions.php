@@ -7,7 +7,14 @@ class SystemFunctions {
      */
     static function getCaller( $arrBacktrace ) {
         //print_r( $arrBacktrace );
-        if ( count( $arrBacktrace ) != 2 ) return array( __METHOD__, __LINE__, __FILE__ );
+        if ( count( $arrBacktrace ) != 2 ) {
+            if ( count( $arrBacktrace ) == 1 ) {
+                $strLine = empty( $arrBacktrace[0]['line'] ) ? '' : $arrBacktrace[0]['line'];
+                $strFile = empty( $arrBacktrace[0]['file'] ) ? '' : basename( $arrBacktrace[0]['file'] );
+                return array( '', $strLine, $strFile );
+            }
+            return array( __METHOD__, __LINE__, __FILE__ );
+        }
 
         $strLine = empty( $arrBacktrace[0]['line'] ) ? '' : $arrBacktrace[0]['line'];
         $strFile = empty( $arrBacktrace[1]['file'] ) ? '' : basename( $arrBacktrace[1]['file'] );

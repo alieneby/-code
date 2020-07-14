@@ -27,7 +27,13 @@
          * @param $strFile      string  Caller
          */
         private static function add( $strLevel, $val, $strMethod, $strLine, $strFile ) {
-            $str = ( is_array( $val ) || is_object( $val ) ) ? print_r( $val, true ) : $val;
+            if ( is_bool( $val ) ) {
+                $str = $val ? 'true' : 'false';
+            } elseif ( is_array( $val ) || is_object( $val ) ) {
+                $str = json_encode( $val, JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_PRETTY_PRINT );
+            } else {
+                $str = $val;
+            }
             $strDuration = sprintf( "%.4f", ( microtime( true ) - Log::$_strStartTimestamp ) );
             if ( ! empty( Config::$_fLogDirectOutput ) ) {
                 echo "\n<br />\n$strFile#$strLine $strMethod(): $str\n<br />\n";
@@ -45,7 +51,7 @@
             return true;
         }
         
-        public static function always( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
+        public static function always( $val = '', $strMethod = '', $strLine = '', $strFile = '' ) {
             if ( ! "$strMethod$strLine$strFile" ) {
                 list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
             }
@@ -103,8 +109,9 @@
             $arrReturn = array();
             foreach ( $arr as $strK => $arrE ) {
                 $arrReturn[] = $arrE[ 'd' ] . ' '
-                    . $arrE[ 'f' ] . '#' . $arrE[ 'n' ] . ' '
+                    . $arrE[ 'f' ] . ' '
                     . ( $arrE[ 'm' ] ? $arrE[ 'm' ] . '()' : '-' )
+                    . ' #' . $arrE[ 'n' ]
                     . ' ' . self::$arrLN[ $arrE[ 'l' ] ] . ' ' . $arrE[ 't' ];
             }
             return $arrReturn;

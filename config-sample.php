@@ -9,10 +9,16 @@ class Config {
     static $_strAlien = '../alien-framework-code'; // where is the alienframework?
 
     /**
-     * (Mandatory) Log more information.
+     * (Mandatory) Log information into log file / db table
      * @var boolean $_fDebug
      */
     static $_fDebug = true;
+    
+    /**
+     * If Log::error() was called, then save debug log in database / file debug.log
+     * @var boolean
+     */
+    static $_fDebugOnError = true;
 
     /**
      * (Optional) Where to store the debugging data.
