@@ -22,6 +22,10 @@
                     dbConnector();
                 }
             }
+            if ( ! empty( $_SERVER[ 'REQUEST_METHOD' ] ) && $_SERVER[ 'REQUEST_METHOD' ] === 'OPTIONS' ) {
+                header( "HTTP/1.1 200 OK" );
+                self::exitNowWithoutExtraHeaderAndBody( 'REQUEST_METHOD: OPTION!' );
+            }
         }
         
         
@@ -189,6 +193,7 @@
             if ( is_array( $arr ) ) foreach ( $arr as $k => $v ) $arr[ $k ] = trim( $v );
             return $arr;
         }
+        
     }
     
     👽::init();
