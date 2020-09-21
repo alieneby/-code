@@ -277,7 +277,7 @@ if ( ! function_exists( 'dbQuery' ) && ! empty ( Config::$_DB_DB ) ) {
     }
 
     function dbErrno( $myLinkId = null ) {
-        return mysqli_errno( $$myLinkId ? $myLinkId : AlienDB::$_linkId );
+        return mysqli_errno( $myLinkId ? $myLinkId : AlienDB::$_linkId );
     }
 
     function dbError( $myLinkId = null ) {
