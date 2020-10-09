@@ -22,7 +22,9 @@
          * @param String $strMasterMask mask name
          */
         static function addMask( $strMasterMask ) {
-            array_push( self::$_arrMasks, new OutMask( $strMasterMask ) );
+            $m = new OutMask();
+            $m->strMask = $strMasterMask;
+            array_push( self::$_arrMasks, $m );
         }
         
         static function getMask( $strMask ) {
