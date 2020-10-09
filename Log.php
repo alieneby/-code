@@ -23,14 +23,16 @@
          * @param $strLevel     string  a=always, i=info, e=error, s=systemerror
          * @param $val          mixed   Message to log (string, array, obj)
          * @param $strMethod    string  Caller
-         * @param $strLine      string  Caller
-         * @param $strFile      string  Caller
+         * @param $strLine      string  Caller JSON_PARTIAL_OUTPUT_ON_ERROR
+         * @param $strFile      string  Caller JSON_PARTIAL_OUTPUT_ON_ERROR
          */
         private static function add( $strLevel, $val, $strMethod, $strLine, $strFile ) {
             if ( is_bool( $val ) ) {
                 $str = $val ? 'true' : 'false';
             } elseif ( is_array( $val ) || is_object( $val ) ) {
-                $str = json_encode( $val, JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_PRETTY_PRINT );
+                // JSON_PARTIAL_OUTPUT_ON_ERROR = 512
+                // JSON_PRETTY_PRINT = 128
+                $str = json_encode( $val, 512 | 128 );
             } else {
                 $str = $val;
             }
