@@ -112,7 +112,7 @@
          *
          * @param string $strPath dbgen/genfiles path absolute
          */
-        function DbCodeGenerator( $strPath = "./genfiles/" ) {
+        function __construct( $strPath = "./genfiles/" ) {
             
             if ( ! AlienDB::$_linkId ) {
                 Log::error( 'No database connection', __METHOD__, __LINE__, __FILE__ );
