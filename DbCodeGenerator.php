@@ -561,7 +561,7 @@
             $this->code[] = '     * @param bool $fPrettyPrint';
             $this->code[] = '     * @return false|string';
             $this->code[] = '     */';
-            $this->code[] = '    function toJson( $fPrettyPrint = true ) {';
+            $this->code[] = '    function getJson( $fPrettyPrint = true ) {';
             $this->code[] = '        $opt = $fPrettyPrint ? JSON_PRETTY_PRINT | JSON_PARTIAL_OUTPUT_ON_ERROR : JSON_PARTIAL_OUTPUT_ON_ERROR;';
             $this->code[] = '        return json_encode( $this->getArray(), $opt );';
             $this->code[] = '    }';
@@ -584,7 +584,6 @@
             $this->code[] = '     * @return string';
             $this->code[] = '     */';
             $this->code[] = '    function print_r( $fReturnString = false ) {';
-            $this->code[] = '        $opt = $fPrettyPrint ? JSON_PRETTY_PRINT | JSON_PARTIAL_OUTPUT_ON_ERROR : JSON_PARTIAL_OUTPUT_ON_ERROR;';
             $this->code[] = '        return print_r( $this->getArray(), $fReturnString );';
             $this->code[] = '    }';
             
