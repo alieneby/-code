@@ -556,8 +556,37 @@
             $this->code[] = '        return $arr;';
             $this->code[] = '    }';
             $this->code[] = '';
+            $this->code[] = '    /**';
+            $this->code[] = '     * Convert to json string';
+            $this->code[] = '     * @param bool $fPrettyPrint';
+            $this->code[] = '     * @return false|string';
+            $this->code[] = '     */';
+            $this->code[] = '    function toJson( $fPrettyPrint = true ) {';
+            $this->code[] = '        $opt = $fPrettyPrint ? JSON_PRETTY_PRINT | JSON_PARTIAL_OUTPUT_ON_ERROR : JSON_PARTIAL_OUTPUT_ON_ERROR;';
+            $this->code[] = '        return json_encode( $this->getArray(), $opt );';
+            $this->code[] = '    }';
             $this->code[] = '';
-            
+            $this->code[] = '    /**';
+            $this->code[] = '     * @return array';
+            $this->code[] = '     */';
+            $this->code[] = '    function getArray() {';
+            $this->code[] = '        $arr = array();';
+            $this->code[] = '        foreach ( self::$_MAPPING as $strMember ) {';
+            $this->code[] = '            if ( isset( $this->$strMember ) ) $arr[ substr( $strMember, 1 ) ] = $this->$strMember;';
+            $this->code[] = '            else unset( $arr[  substr( $strMember, 1 ) ] );';
+            $this->code[] = '        }';
+            $this->code[] = '        return $arr;';
+            $this->code[] = '    }';
+            $this->code[] = '';
+            $this->code[] = '    /**';
+            $this->code[] = '     * Return print_r string';
+            $this->code[] = '     * @param boolean $fReturnString   true: no output and return print_r as String.';
+            $this->code[] = '     * @return string';
+            $this->code[] = '     */';
+            $this->code[] = '    function print_r( $fReturnString = false ) {';
+            $this->code[] = '        $opt = $fPrettyPrint ? JSON_PRETTY_PRINT | JSON_PARTIAL_OUTPUT_ON_ERROR : JSON_PARTIAL_OUTPUT_ON_ERROR;';
+            $this->code[] = '        return print_r( $this->getArray(), $fReturnString );';
+            $this->code[] = '    }';
             
             // generate set part as String, eg: col1,col2,col3
             $this->code[] = '    /**';
