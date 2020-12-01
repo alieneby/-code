@@ -17,7 +17,7 @@ class Internet {
         $arrResponseHeaders = array();
 
         $ch = curl_init( $strUrl );
-        if ( $arrHeaders ) curl_setopt( $ch, CURLOPT_HTTPHEADER, $arrHeader );
+        if ( $arrHeaders ) curl_setopt( $ch, CURLOPT_HTTPHEADER, $arrHeaders );
         if ( $strRawBody ) curl_setopt( $ch, CURLOPT_POSTFIELDS, $strRawBody );
         curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, $nConnectTimeout );
         curl_setopt( $ch, CURLOPT_TIMEOUT, $nTimeout );

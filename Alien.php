@@ -28,15 +28,12 @@
             }
         }
         
-        
         static function 🖖() {
             return call_user_func_array( "👽::exitNow", func_get_args() );
         }
         
         /**
          * @param string $strLastLogMessage
-         * @param int $nHttpErrCode
-         * @param string $strOutput
          */
         static function exitNowWithoutExtraHeaderAndBody( $strLastLogMessage = '' ) {
             Log::$_strLastLogMessage = $strLastLogMessage;
@@ -92,6 +89,10 @@
         
         /**
          * Do not call this function directly!
+         * @param $errfile
+         * @param $errline
+         * @param $errno
+         * @param $errstr
          * @see self::initErrorHandler()
          */
         static function theErrorHandler( $errno, $errstr, $errfile, $errline ) {
@@ -139,8 +140,8 @@
         
         /**
          * @param int $nType 1:= Y-m-d, 2:= timestamp, 3:= Y-m-d H:i:s, 4:= array(Y,m,d,H,i,s), 5:=DD.MM.YYYY, 6:=MM/DD/YYYY, 7:=5|6DepOnOLanguageCd,8=ISO
-         * @param String $strD YYYYMMDD or YYYYMMDDHHMMSS or YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
-         * @return String        20080730104027
+         * @param string $strD YYYYMMDD or YYYYMMDDHHMMSS or YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
+         * @return string|array
          */
         static function strDateTo( $nType, $strD ) {
             $l = strlen( $strD );
@@ -155,7 +156,7 @@
                 $l = strlen( $strD );
             }
             // now $strDate is YYYYMMDD or YYYYMMDDHHMMSS
-            if ( $nType == 7 ) $nType = ( o( 'languageCd' ) == 'de' ? 5 : 6 );
+            if ( $nType == 7 && function_exists( "o" ) ) $nType = ( o( 'languageCd' ) == 'de' ? 5 : 6 );
             if ( $nType == 1 ) return substr( $strD, 0, 4 ) . '-' . substr( $strD, 4, 2 ) . '-' . substr( $strD, 6, 2 );
             if ( $nType == 2 ) return strtotime( self::strDateTo( 3, $strD ) );
             if ( $nType == 8 ) return gmdate( 'Y-m-d\TH:i:s\Z', strtotime( self::strDateTo( 3, $strD ) ) );
@@ -165,6 +166,7 @@
                 0 + substr( $strD, 8, 2 ), 0 + substr( $strD, 10, 2 ), 0 + substr( $strD, 12, 2 ) );
             if ( $nType == 5 ) return substr( $strD, 6, 2 ) . '.' . substr( $strD, 4, 2 ) . "." . substr( $strD, 0, 4 );
             if ( $nType == 6 ) return substr( $strD, 4, 2 ) . '/' . substr( $strD, 6, 2 ) . "/" . substr( $strD, 0, 4 );
+            return 'strDateTo(error)';
         }
         
         static function strEndsWith( $strBig, $parts ) {

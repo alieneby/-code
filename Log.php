@@ -45,7 +45,7 @@
         }
         
         public static function info( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
-            if ( empty( Config::$_fDebug ) ) return;
+            if ( empty( Config::$_fDebug ) ) return true;
             if ( ! "$strMethod$strLine$strFile" ) {
                 list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
             }

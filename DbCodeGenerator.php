@@ -83,7 +83,6 @@
         var $_strPath = ''; // with slash at the end
         var $_arrTables = array();
         
-        
         /**
          * @var bool debug mode on or off
          */
@@ -93,6 +92,8 @@
          * @var String Table name prefix
          */
         var $_strTablePrefix = "wzw_";
+        
+        var $_strDabaseName = '';
         
         /**
          * @var String Column name prefix
@@ -123,6 +124,7 @@
             
             $this->_strPath = $strPath;
             $this->_strTablePrefix = Config::$_DB_PREFIX;
+            $this->_strDabaseName = Config::$_DB_DB;
             $this->_debug = true;
             
             Log::always( 'Database connection successful.', __METHOD__, __LINE__, __FILE__ );
@@ -351,7 +353,8 @@
             $this->code[] = '    * Database table';
             $this->code[] = '    * @access public';
             $this->code[] = '    */';
-            $this->code[] = '    public static $TABLENAME ="' . $tb->_strNameDB . '";';
+            $this->code[] = '    public static $TABLENAME = "' . $tb->_strNameDB . '";';
+            //$this->code[] = '    public static $DB_TB = "`' . $this->_strDabaseName .'`.`'.$tb->_strNameDB . '`";';
             $this->code[] = "    public static \$DBAUTOINCR = '" . $tb->_strAutoIncrCol . "';";
             $this->code[] = '';
             $this->code[] = '    public $_arrayObjects;';
