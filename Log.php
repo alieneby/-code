@@ -9,6 +9,7 @@
         static $_strFirstErrMsg = '';
         static $_nErrors = 0;
         static $_nSystemErrors = 0;
+        static $_fDirectLog = 0;
         static $_nPid;
         static $arrLN = array( 'i' => 'Info:  ', 'e' => 'Error: ', 'a' => 'Always:', 's' => 'SystemErr:' );
         public static $_arr = array();
@@ -40,8 +41,21 @@
             if ( ! empty( Config::$_fLogDirectOutput ) ) {
                 echo "\n<br />\n$strFile#$strLine $strMethod(): $str\n<br />\n";
             }
-            self::$_arr[] = array( 'l' => $strLevel, 'd' => $strDuration, 'f' => basename( $strFile ),
-                'm' => $strMethod, 'n' => $strLine, 't' => $str );
+    
+            $arr = array(
+                'l' => $strLevel,
+                'd' => $strDuration,
+                'f' => basename( $strFile ),
+                'm' => $strMethod,
+                'n' => $strLine,
+                't' => $str );
+            
+            if ( Log::$_fDirectLog ) {
+                $strLine = Log::toLogLineSingle( $arr );
+                @file_put_contents( Config::$_strDebugLog, $strLine, FILE_APPEND );
+            } else {
+                self::$_arr[] = $arr;
+            }
         }
         
         public static function info( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
@@ -110,13 +124,17 @@
             }
             $arrReturn = array();
             foreach ( $arr as $strK => $arrE ) {
-                $arrReturn[] = $arrE[ 'd' ] . ' '
+                $arrReturn[] = Log::toLogLineSingle( $arrE );
+            }
+            return $arrReturn;
+        }
+    
+        private static function toLogLineSingle( $arrE  ) {
+            return  $arrE[ 'd' ] . ' '
                     . $arrE[ 'f' ] . ' '
                     . ( $arrE[ 'm' ] ? $arrE[ 'm' ] . '()' : '-' )
                     . ' #' . $arrE[ 'n' ]
                     . ' ' . self::$arrLN[ $arrE[ 'l' ] ] . ' ' . $arrE[ 't' ];
-            }
-            return $arrReturn;
         }
         
         /**
