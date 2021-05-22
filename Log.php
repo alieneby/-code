@@ -51,7 +51,7 @@
                 't' => $str );
             
             if ( Log::$_fDirectLog ) {
-                $strLine = Log::toLogLineSingle( $arr ) . '\n';
+                $strLine = Log::toLogLineSingle( $arr ) . "\n";
                 @file_put_contents( Config::$_strDebugLog, $strLine, FILE_APPEND );
             } else {
                 self::$_arr[] = $arr;
