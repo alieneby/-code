@@ -42,13 +42,14 @@
                 Config::$_DB_DB,
                 empty( Config::$_DB_PORT ) ? 0 : Config::$_DB_PORT
             );
-            
+
             if ( AlienDB::$_linkId ) {
                 Log::info( "db connected", __METHOD__, __LINE__, __FILE__ );
                 mysqli_set_charset( AlienDB::$_linkId, "utf8" );
                 // We not support: STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE!!!!
                 mysqli_query( AlienDB::$_linkId, "SET SESSION sql_mode='ONLY_FULL_GROUP_BY,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" );
             } else {
+                Log::systemError( Config::$_DB_USER . ":" .Config::$_DB_PWD . "@" . Config::$_DB_HOST . "/" .Config::$_DB_DB );
                 Log::systemError( "Can not connect to database", __METHOD__, __LINE__, __FILE__ );
             }
             return AlienDB::$_linkId;

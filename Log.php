@@ -24,10 +24,10 @@
          * @param $strLevel     string  a=always, i=info, e=error, s=systemerror
          * @param $val          mixed   Message to log (string, array, obj)
          * @param $strMethod    string  Caller
-         * @param $strLine      string  Caller JSON_PARTIAL_OUTPUT_ON_ERROR
+         * @param $nLine      string  Caller JSON_PARTIAL_OUTPUT_ON_ERROR
          * @param $strFile      string  Caller JSON_PARTIAL_OUTPUT_ON_ERROR
          */
-        private static function add( $strLevel, $val, $strMethod, $strLine, $strFile ) {
+        private static function add( $strLevel, $val, $strMethod, $nLine, $strFile ) {
             if ( is_bool( $val ) ) {
                 $str = $val ? 'true' : 'false';
             } elseif ( is_array( $val ) || is_object( $val ) ) {
@@ -39,7 +39,7 @@
             }
             $strDuration = sprintf( "%.4f", ( microtime( true ) - Log::$_strStartTimestamp ) );
             if ( ! empty( Config::$_fLogDirectOutput ) ) {
-                echo "\n<br />\n$strFile#$strLine $strMethod(): $str\n<br />\n";
+                echo "\n<br />\n$strFile#$nLine $strMethod(): $str\n<br />\n";
             }
     
             $arr = array(
@@ -47,54 +47,63 @@
                 'd' => $strDuration,
                 'f' => basename( $strFile ),
                 'm' => $strMethod,
-                'n' => $strLine,
+                'n' => $nLine,
                 't' => $str );
             
             if ( Log::$_fDirectLog ) {
-                $strLine = Log::toLogLineSingle( $arr ) . "\n";
-                @file_put_contents( Config::$_strDebugLog, $strLine, FILE_APPEND );
+                $nLine = Log::toLogLineSingle( $arr ) . "\n";
+                @file_put_contents( Config::$_strDebugLog, $nLine, FILE_APPEND );
             } else {
                 self::$_arr[] = $arr;
             }
         }
-        
-        public static function info( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
+        private static function getMethodLineFile( $strMethod, $nLine, $strFile) {
+            if ( $strMethod && is_string( $strMethod )
+                 && $nLine && is_numeric( $nLine )
+                  && $strFile && is_string( $strFile )
+                  && strpos($strFile, '.php') ) {
+                return array( $strMethod, $nLine, $strFile );
+            }
+            return SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
+        }
+
+        public static function info( $val, $strMethod = '', $nLine = '', $strFile = '' ) {
             if ( empty( Config::$_fDebug ) ) return true;
-            if ( ! "$strMethod$strLine$strFile" ) {
-                list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
-            }
-            self::add( 'i', $val, $strMethod, $strLine, $strFile );
+
+            list( $strMethod, $nLine, $strFile )
+                = self::getMethodLineFile( $strMethod, $nLine, $strFile );
+
+                self::add( 'i', $val, $strMethod, $nLine, $strFile );
             return true;
         }
-        
-        public static function always( $val = '', $strMethod = '', $strLine = '', $strFile = '' ) {
-            if ( ! "$strMethod$strLine$strFile" ) {
-                list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
-            }
-            self::add( 'a', $val, $strMethod, $strLine, $strFile );
-            return true;
+
+        public static function always( $val = '', $strMethod = '', $nLine = '', $strFile = '' ) {
+            list( $strMethod, $nLine, $strFile )
+                = self::getMethodLineFile( $strMethod, $nLine, $strFile );
+            self::add( 'a', $val, $strMethod, $nLine, $strFile );
+                return true;
         }
-        
-        public static function error( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
+
+        public static function error( $val, $strMethod = '', $nLine = '', $strFile = '' ) {
             self::$_nErrors = self::$_nErrors + 1;
-            if ( ! "$strMethod$strLine$strFile" ) {
-                list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
-            }
-            self::add( 'e', $val, $strMethod, $strLine, $strFile );
+            list( $strMethod, $nLine, $strFile )
+                = self::getMethodLineFile( $strMethod, $nLine, $strFile );
+            self::add( 'e', $val, $strMethod, $nLine, $strFile );
             return false;
         }
-        
-        public static function systemError( $val, $strMethod = '', $strLine = '', $strFile = '' ) {
+
+        public static function systemError( $val, $strMethod = '', $nLine = '', $strFile = '' ) {
             self::$_nSystemErrors = self::$_nSystemErrors + 1;
-            if ( ! "$strMethod$strLine$strFile" ) {
-                list( $strMethod, $strLine, $strFile ) = SystemFunctions::getCaller( debug_backtrace( 0, 2 ) );
-            }
+
+            list( $strMethod, $nLine, $strFile )
+                = self::getMethodLineFile( $strMethod, $nLine, $strFile );
+
             $str = ( is_array( $val ) || is_object( $val ) ) ? print_r( $val, true ) : $val;
-            error_log( "$strFile#$strLine $strMethod(): " . addslashes( $str ) );
+            error_log( "$strFile#$nLine $strMethod(): " . addslashes( $str ) );
             if ( ! empty( Config::$_fSytemErrorDirectOutput ) ) {
-                echo "\n<br />\n$strFile#$strLine $strMethod(): $str\n<br />\n";
+                echo "\n<br />\n$strFile#$nLine $strMethod(): $str\n<br />\n";
             }
-            self::add( 's', $val, $strMethod, $strLine, $strFile );
+            self::add( 's', $val, $strMethod, $nLine, $strFile );
             return false;
         }
         

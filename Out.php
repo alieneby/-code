@@ -11,7 +11,7 @@
         
         /**
          * Container for values, which the application wants to display.
-         * @var associated array of strings
+         * @var string[] array of strings
          */
         static $_arrVars = array();
         
@@ -34,9 +34,13 @@
         static function addVar( $strK, $strV ) {
             self::$_arrVars[ $strK ] = $strV;
         }
-        
+    
+        /**
+         * @param string $strK
+         * @return string
+         */
         static function getVar( $strK ) {
-            return empty( self::$_arrVars[ $strK ] ) ? '' : self::$_arrVars[ $strK ];
+            return isset( self::$_arrVars[ $strK ] ) ? self::$_arrVars[ $strK ] : '';
         }
         
         private static function displayMask( OutMask $mask ) {
